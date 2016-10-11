@@ -1,4 +1,4 @@
-import java.util.ArrayList;
+import java.util.ArrayList;///////////////////
 
 public class Store { //창고, 가게의 공통 상위클래스
 	// 내부 재고 클래스
