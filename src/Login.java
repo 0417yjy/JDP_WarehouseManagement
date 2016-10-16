@@ -18,23 +18,23 @@ import javax.swing.JTextField;
 import javax.swing.border.EmptyBorder;
 
 public class Login extends JFrame implements ActionListener {
-//	private class Account { // 계정 클래스
-//		private String id;
-//		private String pw;
-//
-//		public Account(String id, String pw) {
-//			this.id = id;
-//			this.pw = pw;
-//		}
-//
-//		public String getId() {
-//			return id;
-//		}
-//
-//		public String getPw() {
-//			return pw;
-//		}
-//	}
+	// private class Account { // 계정 클래스
+	// private String id;
+	// private String pw;
+	//
+	// public Account(String id, String pw) {
+	// this.id = id;
+	// this.pw = pw;
+	// }
+	//
+	// public String getId() {
+	// return id;
+	// }
+	//
+	// public String getPw() {
+	// return pw;
+	// }
+	// }
 
 	private JPanel contentPane;
 	private JTextField idField;
@@ -53,7 +53,7 @@ public class Login extends JFrame implements ActionListener {
 	 */
 
 	public static void main(String[] args) {
-		EventQueue.invokeLater(new Runnable() {
+		EventQueue.invokeLater(new Runnable() { //로그인 프레임 생성
 			public void run() {
 				try {
 					Login frame = new Login();
@@ -108,7 +108,8 @@ public class Login extends JFrame implements ActionListener {
 		contentPane.add(passwordField);
 
 		try {
-			in = new BufferedReader(new FileReader("list.txt")); // 명단 리스트 파일 입력용 객체
+			in = new BufferedReader(new FileReader("list.txt")); // 명단 리스트 파일
+																	// 입력용 객체
 
 		} catch (FileNotFoundException e1) { // 파일이 없으면 에러 메시지 출력
 			e1.printStackTrace();
@@ -140,12 +141,25 @@ public class Login extends JFrame implements ActionListener {
 						if (inputId.equals("admin")) {
 							// 헤드 GUI 생성 & 로그인 GUI 닫기
 							this.dispose();
+							try {
+								new Head();
+							} catch (Exception e1) {
+								e1.printStackTrace();
+							}
 						} else if (inputId.charAt(0) == '1') {
 							// 창고GUI 생성
 							this.dispose();
 						} else if (inputId.charAt(0) == '2') {
 							// 가게GUI 생성
 							this.dispose();
+						} else if (inputId.equals("server")) {
+							this.dispose();
+							try {
+								new Server(); //서버 호스트
+							} catch (Exception e1) {
+								e1.printStackTrace();
+								System.out.println("Server has already been hosted or has error.");
+							}
 						}
 					}
 				}
