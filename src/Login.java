@@ -148,9 +148,19 @@ public class Login extends JFrame implements ActionListener {
 							}
 						} else if (inputId.charAt(0) == '1') {
 							// 창고GUI 생성
+							try {
+								new Warehouse(inputId, inputPw, 1);
+							} catch (Exception e1) {
+								e1.printStackTrace();
+							}
 							this.dispose();
 						} else if (inputId.charAt(0) == '2') {
 							// 가게GUI 생성
+							try {
+								new Store(inputId, inputPw, 2);
+							} catch (Exception e1) {
+								e1.printStackTrace();
+							}
 							this.dispose();
 						} else if (inputId.equals("server")) {
 							this.dispose();

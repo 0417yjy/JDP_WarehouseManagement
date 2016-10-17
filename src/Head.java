@@ -66,15 +66,10 @@ class warehouseheadGUI extends JFrame implements Runnable {
 		Object[][] data_warehouse = { { "A 창고", "1001", new Double(87.4), new Double(44.2) },
 				{ "B 창고", "1002", new Double(37.0), new Double(60.1) } };
 		JTable warehouse_Table = new JTable(data_warehouse, columnNames_warehouse) {
-
 			@Override
-
 			public boolean isCellEditable(int row, int column) {
-
 				return false;
-
 			}
-
 		};
 
 		tableWarehouse = new JTable(data_warehouse, columnNames_warehouse);
@@ -134,8 +129,8 @@ class warehouseheadGUI extends JFrame implements Runnable {
 	@Override
 	public void run() {
 		setVisible(true);
-		while (true) {
-			lbTime.setText("접속시간 : " + new Date().toString());
+		while (true) { // 프레임 상의 변화는 모두 이곳에서 업데이트
+			lbTime.setText("현재시간 : " + new Date().toString());
 		}
 	}
 
