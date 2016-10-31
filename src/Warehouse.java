@@ -50,7 +50,7 @@ class warehouseGUI extends JFrame implements Runnable {
 		setContentPane(contentPane);
 		contentPane.setLayout(null);
 
-		timeLabel = new JLabel("현재시간 : " + new Date().toString());
+		timeLabel = new JLabel("current time : " + new Date().toString());
 		timeLabel.setBounds(386, 10, 251, 15);
 		contentPane.add(timeLabel);
 
@@ -60,9 +60,9 @@ class warehouseGUI extends JFrame implements Runnable {
 
 		// 재고관리 탭 패널
 		stockPanel = new JPanel();
-		tabbedPane.addTab("재고관리", null, stockPanel, null);
+		tabbedPane.addTab("Manage inventory", null, stockPanel, null);
 		stockPanel.setLayout(null);
-		String[] stockColumnNames = { "물품명", "재고량", "최대 수용가능수량", "최소 유지재고수량" };
+		String[] stockColumnNames = { "name", "amount", "Maximum capacity", "Maintaining minimum quantity" };
 		Object[][] stockData = { { "A", new Integer(50), new Integer(100), new Integer(20) },
 				{ "B", new Integer(70), new Integer(150), new Integer(50) } };
 		stockTable = new JTable(stockData, stockColumnNames) {
@@ -78,21 +78,22 @@ class warehouseGUI extends JFrame implements Runnable {
 
 		stockPanel.add(stockScroll);
 
-		JButton btnModifyStock = new JButton("재고량 수정");
+		JButton btnModifyStock = new JButton("edit inventory");
 		btnModifyStock.setBounds(170, 275, 116, 23);
 		stockPanel.add(btnModifyStock);
 
-		JButton btnModifyMaxMin = new JButton("최대/최소 수량 편집");
+		JButton btnModifyMaxMin = new JButton("Maximum/minimum amount edit");
 		btnModifyMaxMin.setBounds(333, 275, 173, 23);
 		stockPanel.add(btnModifyMaxMin);
 
 		// 주문관리 탭 패널
 		transPanel = new JPanel();
-		tabbedPane.addTab("주문관리", null, transPanel, null);
+		tabbedPane.addTab("order management", null, transPanel, null);
 		transPanel.setLayout(null);
 
-		String[] transColumnNames = { "창고명", "물품명", "운송량", "운송비", "발송여부" };
-		Object[][] transData = { { "A창고", "A", new Integer(50), new Integer(30000), new Boolean(false) } };
+		String[] transColumnNames = { "Warehouse name", "goods name", "amount of trasportation", "cost of trasportation", "shipping(Y/N)" };
+
+		Object[][] transData = { { "A warehouse", "A", new Integer(50), new Integer(30000), new Boolean(false) } };
 		transTable = new JTable(transData, transColumnNames) {
 			@Override
 			public boolean isCellEditable(int row, int column) {
@@ -104,25 +105,25 @@ class warehouseGUI extends JFrame implements Runnable {
 		transScroll.setBounds(12, 42, 596, 241);
 		transPanel.add(transScroll);
 
-		JButton btnReceived = new JButton("수령완료");
+		JButton btnReceived = new JButton("Receipt of completed");
 		btnReceived.setBounds(486, 294, 122, 23);
 		transPanel.add(btnReceived);
 		
-		JButton btnNew_w = new JButton("새로 주문하기");
+		JButton btnNew_w = new JButton("A new order");
 		btnNew_w.setSize(140, 23);
 		btnNew_w.setLocation(12, 10);
 		transPanel.add(btnNew_w);
 
-		JButton btnCancle = new JButton("주문취소");
+		JButton btnCancle = new JButton("cancel order");
 		btnCancle.setBounds(164, 10, 114, 23);
 		transPanel.add(btnCancle);
 
 		// 운송관리 탭 패널
 		sendPanel = new JPanel();
-		tabbedPane.addTab("운송관리", null, sendPanel, null);
+		tabbedPane.addTab("Transprotation management", null, sendPanel, null);
 		sendPanel.setLayout(null);
 
-		String[] sendColumnNames = { "가게명", "x", "y", "물품명", "운송량" };
+		String[] sendColumnNames = { "store name", "x", "y", "name of goods", "amount of transportation" };
 		Object[][] sendData = { { "A가게", "92.5", "45.0", "A", new Integer(50)} };
 		sendTable = new JTable(sendData, sendColumnNames) {
 			@Override
@@ -138,7 +139,7 @@ class warehouseGUI extends JFrame implements Runnable {
 
 		
 
-		JButton btnSended = new JButton("발송완료");
+		JButton btnSended = new JButton("Shipped");//발생완료
 		btnSended.setSize(114, 23);
 		btnSended.setLocation(494, 294);
 		btnCancle.setBounds(360, 294, 114, 23);
@@ -149,7 +150,7 @@ class warehouseGUI extends JFrame implements Runnable {
 	public void run() {
 		setVisible(true);
 		while (true) {
-			timeLabel.setText("현재시간 : " + new Date().toString());
+			timeLabel.setText("current time : " + new Date().toString());
 		}
 	}
 
@@ -179,3 +180,4 @@ public class Warehouse extends Store {
 	
 	private ArrayList<Transport> transports = new ArrayList<Transport>();
 }
+
