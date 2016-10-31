@@ -40,17 +40,17 @@ class warehouseheadGUI extends JFrame implements Runnable {
 		contentPane.setLayout(null);
 
 		JLabel lbTitle = new JLabel("Warehouse Head Management");
-		lbTitle.setFont(new Font("굴림", Font.BOLD, 16));
+		lbTitle.setFont(new Font("Serif", Font.BOLD, 16));
 		lbTitle.setBounds(12, 10, 256, 19);
 		contentPane.add(lbTitle);
 
-		lbTime = new JLabel("접속시간 : " + new Date().toString());
+		lbTime = new JLabel("Access time : " + new Date().toString());
 		lbTime.setBounds(386, 10, 251, 15);
 		contentPane.add(lbTime);
 
 		// warehouse 부분 시작
 		JLabel lblWarehouseInfo = new JLabel("Warehouse Info");
-		lblWarehouseInfo.setFont(new Font("굴림", Font.PLAIN, 13));
+		lblWarehouseInfo.setFont(new Font("Serif", Font.PLAIN, 13));
 		lblWarehouseInfo.setBounds(12, 36, 99, 16);
 		contentPane.add(lblWarehouseInfo);
 
@@ -63,8 +63,8 @@ class warehouseheadGUI extends JFrame implements Runnable {
 		contentPane.add(btnWarehouseDetail);
 
 		String[] columnNames_warehouse = { "Warehouse", "ID", "x", "y" };
-		Object[][] data_warehouse = { { "A 창고", "1001", new Double(87.4), new Double(44.2) },
-				{ "B 창고", "1002", new Double(37.0), new Double(60.1) } };
+		Object[][] data_warehouse = { { "A Warehouse", "1001", new Double(87.4), new Double(44.2) },
+				{ "B Warehouse", "1002", new Double(37.0), new Double(60.1) } };
 		JTable warehouse_Table = new JTable(data_warehouse, columnNames_warehouse) {
 			@Override
 			public boolean isCellEditable(int row, int column) {
@@ -82,13 +82,13 @@ class warehouseheadGUI extends JFrame implements Runnable {
 
 		// store 부분 시작
 		JLabel lblStoreInfo = new JLabel("Store Info");
-		lblStoreInfo.setFont(new Font("굴림", Font.PLAIN, 13));
+		lblStoreInfo.setFont(new Font("Serif", Font.PLAIN, 13));
 		lblStoreInfo.setBounds(425, 35, 59, 16);
 		contentPane.add(lblStoreInfo);
 
 		String[] columnNames_store = { "Store", "ID", "x", "y" };
-		Object[][] data_store = { { "A 가게", "2001", new Double(92.5), new Double(45.0) },
-				{ "B 가게", "2002", new Double(28.1), new Double(11.8) } };
+		Object[][] data_store = { { "A Store", "2001", new Double(92.5), new Double(45.0) },
+				{ "B Store", "2002", new Double(28.1), new Double(11.8) } };
 		storeWarehouse = new JTable(data_store, columnNames_store);
 
 		JScrollPane scrollStore = new JScrollPane();
@@ -103,11 +103,11 @@ class warehouseheadGUI extends JFrame implements Runnable {
 
 		// Request 부분 시작
 		JLabel lblRequest = new JLabel("Request");
-		lblRequest.setFont(new Font("굴림", Font.PLAIN, 14));
+		lblRequest.setFont(new Font("Serif", Font.PLAIN, 14));
 		lblRequest.setBounds(12, 222, 54, 17);
 		contentPane.add(lblRequest);
 
-		String[] columnNames_request = { "가게", "물품", "수량", "접수" };
+		String[] columnNames_request = { "Store", "article", "amount", "accept" };
 		Object[][] data_request = { { "A", "A", new Integer(150), "Pending" },
 				{ "B", new Integer(70), new Integer(200), "Confirmed" } };
 		tableRequest = new JTable(data_request, columnNames_request);
@@ -116,11 +116,11 @@ class warehouseheadGUI extends JFrame implements Runnable {
 		scrollRequest.setBounds(12, 249, 756, 155);
 		contentPane.add(scrollRequest);
 
-		JButton btnEachProcess = new JButton("개별처리");
+		JButton btnEachProcess = new JButton("Individual treatment");
 		btnEachProcess.setBounds(655, 407, 113, 23);
 		contentPane.add(btnEachProcess);
 
-		JButton btnAllProcess = new JButton("일괄처리");
+		JButton btnAllProcess = new JButton("Batch processing");
 		btnAllProcess.setBounds(530, 407, 113, 23);
 		contentPane.add(btnAllProcess);
 		// Request 부분 끝
@@ -130,7 +130,7 @@ class warehouseheadGUI extends JFrame implements Runnable {
 	public void run() {
 		setVisible(true);
 		while (true) { // 프레임 상의 변화는 모두 이곳에서 업데이트
-			lbTime.setText("현재시간 : " + new Date().toString());
+			lbTime.setText("current time : " + new Date().toString());
 		}
 	}
 
