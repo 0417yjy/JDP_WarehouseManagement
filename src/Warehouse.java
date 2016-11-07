@@ -2,6 +2,8 @@ import java.util.ArrayList;
 
 import java.awt.BorderLayout;
 import java.awt.EventQueue;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.util.Date;
 
 import javax.swing.JButton;
@@ -20,27 +22,13 @@ class warehouseGUI extends JFrame implements Runnable {
 	private JScrollPane stockScroll, transScroll, sendScroll;
 	private JPanel stockPanel, transPanel, sendPanel;
 	private JLabel timeLabel;
-
-	/**
-	 * Launch the application.
-	 */
-	public static void main(String[] args) {
-		EventQueue.invokeLater(new Runnable() {
-			public void run() {
-				try {
-					warehouseGUI frame = new warehouseGUI();
-					frame.setVisible(true);
-				} catch (Exception e) {
-					e.printStackTrace();
-				}
-			}
-		});
-	}
+	private String id;
 
 	/**
 	 * Create the frame.
 	 */
-	public warehouseGUI() {
+	public warehouseGUI(String id) {
+		this.id = id;
 		setTitle("Warehouse Management");
 		setResizable(false);
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -50,7 +38,7 @@ class warehouseGUI extends JFrame implements Runnable {
 		setContentPane(contentPane);
 		contentPane.setLayout(null);
 
-		timeLabel = new JLabel("현재시간 : " + new Date().toString());
+		timeLabel = new JLabel("Current Time : " + new Date().toString());
 		timeLabel.setBounds(386, 10, 251, 15);
 		contentPane.add(timeLabel);
 
@@ -60,9 +48,9 @@ class warehouseGUI extends JFrame implements Runnable {
 
 		// 재고관리 탭 패널
 		stockPanel = new JPanel();
-		tabbedPane.addTab("재고관리", null, stockPanel, null);
+		tabbedPane.addTab("Manage inventory", null, stockPanel, null);
 		stockPanel.setLayout(null);
-		String[] stockColumnNames = { "물품명", "재고량", "최대 수용가능수량", "최소 유지재고수량" };
+		String[] stockColumnNames = { "name", "amount", "Maximum capacity", "Maintaining minimum quantity" };
 		Object[][] stockData = { { "A", new Integer(50), new Integer(100), new Integer(20) },
 				{ "B", new Integer(70), new Integer(150), new Integer(50) } };
 		stockTable = new JTable(stockData, stockColumnNames) {
@@ -78,21 +66,74 @@ class warehouseGUI extends JFrame implements Runnable {
 
 		stockPanel.add(stockScroll);
 
-		JButton btnModifyStock = new JButton("재고량 수정");
-		btnModifyStock.setBounds(170, 275, 116, 23);
+		JButton btnModifyStock = new JButton("Edit inventory");
+		btnModifyStock.setBounds(80, 275, 116, 23);
+		btnModifyStock.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent arg0) {
+				new Add_popup("Edit Inventory", "Stock Name", "Amount") {
+
+					@Override
+					public void makeCommand() {
+						String command = "E;";
+						command+=id+";";
+						command+=this.textField.getText()+";";
+						command+=this.textField_1.getText()+";"; //make a Command String, but not send it yet.
+					}
+					
+				};
+			}
+		});
 		stockPanel.add(btnModifyStock);
 
-		JButton btnModifyMaxMin = new JButton("최대/최소 수량 편집");
-		btnModifyMaxMin.setBounds(333, 275, 173, 23);
-		stockPanel.add(btnModifyMaxMin);
+		JButton btnModifyMax = new JButton("Edit Max Capacity");
+		btnModifyMax.setBounds(230, 275, 173, 23);
+		btnModifyMax.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent arg0) {
+				new Add_popup("Edit Max Capacity", "Stock Name", "Max Capacity") {
+
+					@Override
+					public void makeCommand() {
+						String command = "MX;";
+						command+=id+";";
+						command+=this.textField.getText()+";";
+						command+=this.textField_1.getText()+";"; //make a Command String, but not send it yet.
+					}
+					
+				};
+			}
+		});
+		stockPanel.add(btnModifyMax);
+		
+		JButton btnModifyMin = new JButton("Edit Min Stock Amount");
+		btnModifyMin.setBounds(410, 275, 173, 23);
+		btnModifyMin.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent arg0) {
+				new Add_popup("Edit Min Amount", "Stock Name", "Stock Amount") {
+
+					@Override
+					public void makeCommand() {
+						String command = "MN;";
+						command+=id+";";
+						command+=this.textField.getText()+";";
+						command+=this.textField_1.getText()+";"; //make a Command String, but not send it yet.
+					}
+					
+				};
+			}
+		});
+		stockPanel.add(btnModifyMin);
 
 		// 주문관리 탭 패널
 		transPanel = new JPanel();
-		tabbedPane.addTab("주문관리", null, transPanel, null);
+		tabbedPane.addTab("Order Management", null, transPanel, null);
 		transPanel.setLayout(null);
 
-		String[] transColumnNames = { "창고명", "물품명", "운송량", "운송비", "발송여부" };
-		Object[][] transData = { { "A창고", "A", new Integer(50), new Integer(30000), new Boolean(false) } };
+		String[] transColumnNames = { "Warehouse name", "goods name", "amount of trasportation", "cost of trasportation", "shipping(Y/N)" };
+
+		Object[][] transData = { { "B warehouse", "A", new Integer(50), new Integer(30000), new Boolean(false) } };
 		transTable = new JTable(transData, transColumnNames) {
 			@Override
 			public boolean isCellEditable(int row, int column) {
@@ -104,25 +145,41 @@ class warehouseGUI extends JFrame implements Runnable {
 		transScroll.setBounds(12, 42, 596, 241);
 		transPanel.add(transScroll);
 
-		JButton btnReceived = new JButton("수령완료");
+		JButton btnReceived = new JButton("Receipt of Completed");
 		btnReceived.setBounds(486, 294, 122, 23);
 		transPanel.add(btnReceived);
 		
-		JButton btnNew_w = new JButton("새로 주문하기");
+		JButton btnNew_w = new JButton("New Order");
 		btnNew_w.setSize(140, 23);
 		btnNew_w.setLocation(12, 10);
+		btnNew_w.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent arg0) {
+				new Add_popup("New Order", "Stock Name", "Stock Amount") {
+
+					@Override
+					public void makeCommand() {
+						String command = "O;";
+						command+=id+";";
+						command+=this.textField.getText()+";";
+						command+=this.textField_1.getText()+";"; //make a Command String, but not send it yet.
+					}
+					
+				};
+			}
+		});
 		transPanel.add(btnNew_w);
 
-		JButton btnCancle = new JButton("주문취소");
+		JButton btnCancle = new JButton("Cancel Order");
 		btnCancle.setBounds(164, 10, 114, 23);
 		transPanel.add(btnCancle);
 
 		// 운송관리 탭 패널
 		sendPanel = new JPanel();
-		tabbedPane.addTab("운송관리", null, sendPanel, null);
+		tabbedPane.addTab("Transprotation Management", null, sendPanel, null);
 		sendPanel.setLayout(null);
 
-		String[] sendColumnNames = { "가게명", "x", "y", "물품명", "운송량" };
+		String[] sendColumnNames = { "store name", "x", "y", "name of goods", "amount of transportation" };
 		Object[][] sendData = { { "A가게", "92.5", "45.0", "A", new Integer(50)} };
 		sendTable = new JTable(sendData, sendColumnNames) {
 			@Override
@@ -138,7 +195,7 @@ class warehouseGUI extends JFrame implements Runnable {
 
 		
 
-		JButton btnSended = new JButton("발송완료");
+		JButton btnSended = new JButton("Shipped");//발생완료
 		btnSended.setSize(114, 23);
 		btnSended.setLocation(494, 294);
 		btnCancle.setBounds(360, 294, 114, 23);
@@ -149,7 +206,7 @@ class warehouseGUI extends JFrame implements Runnable {
 	public void run() {
 		setVisible(true);
 		while (true) {
-			timeLabel.setText("현재시간 : " + new Date().toString());
+			timeLabel.setText("Current time : " + new Date().toString());
 		}
 	}
 
@@ -179,3 +236,4 @@ public class Warehouse extends Store {
 	
 	private ArrayList<Transport> transports = new ArrayList<Transport>();
 }
+

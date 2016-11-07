@@ -12,6 +12,7 @@ import java.io.IOException;
 import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JPasswordField;
 import javax.swing.JTextField;
@@ -99,7 +100,7 @@ public class Login extends JFrame implements ActionListener {
 		contentPane.add(btnProceed);
 
 		lblUserAuthorisationRequired = new JLabel("User authorisation required");
-		lblUserAuthorisationRequired.setFont(new Font("굴림", Font.PLAIN, 16));
+		lblUserAuthorisationRequired.setFont(new Font("Serif", Font.PLAIN, 16));
 		lblUserAuthorisationRequired.setBounds(32, 10, 214, 28);
 		contentPane.add(lblUserAuthorisationRequired);
 
@@ -119,7 +120,7 @@ public class Login extends JFrame implements ActionListener {
 			ef.setLocation(dim.width / 2 - this.getSize().width / 2, dim.height / 2 - this.getSize().height / 2);
 			ef.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 			ef.getContentPane().setLayout(null);
-			JLabel errorMessage = new JLabel("명단 파일을 찾을 수 없습니다");
+			JLabel errorMessage = new JLabel("Cannot find the file");
 			errorMessage.setBounds(30, 10, 200, 50);
 			ef.getContentPane().add(errorMessage);
 		}
