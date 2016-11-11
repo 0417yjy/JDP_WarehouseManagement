@@ -130,9 +130,7 @@ class warehouseGUI extends JFrame implements Runnable {
 		transPanel = new JPanel();
 		tabbedPane.addTab("Order Management", null, transPanel, null);
 		transPanel.setLayout(null);
-
 		String[] transColumnNames = { "Warehouse name", "goods name", "amount of trasportation", "cost of trasportation", "shipping(Y/N)" };
-
 		Object[][] transData = { { "B warehouse", "A", new Integer(50), new Integer(30000), new Boolean(false) } };
 		transTable = new JTable(transData, transColumnNames) {
 			@Override
@@ -169,7 +167,6 @@ class warehouseGUI extends JFrame implements Runnable {
 			}
 		});
 		transPanel.add(btnNew_w);
-
 		JButton btnCancle = new JButton("Cancel Order");
 		btnCancle.setBounds(164, 10, 114, 23);
 		transPanel.add(btnCancle);

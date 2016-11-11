@@ -54,6 +54,8 @@ public class Login extends JFrame implements ActionListener {
 	 */
 
 	public static void main(String[] args) {
+		String[] values = {"A", "B"};
+		Object selected = JOptionPane.showInputDialog(null, "Select item to edit", "maximum / minimum inventory edit", JOptionPane.DEFAULT_OPTION, null, values, "0");
 		EventQueue.invokeLater(new Runnable() { //로그인 프레임 생성
 			public void run() {
 				try {

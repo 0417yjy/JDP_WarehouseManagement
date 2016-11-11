@@ -41,6 +41,7 @@ class storeGUI extends JFrame implements Runnable {
 		contentPane.setLayout(null);
 
 		timeLabel = new JLabel("Current time : " + new Date().toString());
+
 		timeLabel.setBounds(386, 10, 251, 15);
 		contentPane.add(timeLabel);
 
@@ -131,6 +132,7 @@ class storeGUI extends JFrame implements Runnable {
 		// 주문관리 탭 패널
 		transPanel = new JPanel();
 		tabbedPane.addTab("Order Managing", null, transPanel, null);
+
 		transPanel.setLayout(null);
 
 		String[] transColumnNames = { "Warehouse name", "goods name", "amount of trasportation", "cost of trasportation", "shipping(Y/N)" };
@@ -170,6 +172,7 @@ class storeGUI extends JFrame implements Runnable {
 		});
 		transPanel.add(btnNew);
 
+		//SHOULD ADD EVENT HANDLER!!
 		JButton btnCancle = new JButton("Cancel Order");
 		btnCancle.setBounds(164, 10, 114, 23);
 		transPanel.add(btnCancle);
