@@ -6,6 +6,7 @@ public class Warehouse extends Store {
 		private String storeName; //가게명
 		private String stockName; //재고명
 		private double x, y; //목표지점 좌표
+		private double address;
 		private int amount; //운송량
 		
 		public Transport(String storeName, String stockName, double x, double y, int amount) {
