@@ -68,6 +68,7 @@ public class Server {
 					}
 					for (PrintWriter writer : writers) { // 다른 클라이언트들에게 해당 메시지
 															// 송출
+						System.out.println(input);
 						writer.println(input);
 					}
 				}

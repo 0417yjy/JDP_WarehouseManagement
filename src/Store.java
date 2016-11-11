@@ -1,3 +1,5 @@
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -22,11 +24,13 @@ class storeGUI extends JFrame implements Runnable {
 	private JScrollPane stockScroll, transScroll;
 	private JPanel stockPanel, transPanel;
 	private JLabel timeLabel;
+	private String id;
 
 	/**
 	 * Create the frame.
 	 */
-	public storeGUI() {
+	public storeGUI(String id) {
+		this.id=id;
 		setTitle("Store Management");
 		setResizable(false);
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -36,7 +40,8 @@ class storeGUI extends JFrame implements Runnable {
 		setContentPane(contentPane);
 		contentPane.setLayout(null);
 
-		timeLabel = new JLabel("Access time : " + new Date().toString());
+		timeLabel = new JLabel("Current time : " + new Date().toString());
+
 		timeLabel.setBounds(386, 10, 251, 15);
 		contentPane.add(timeLabel);
 
@@ -64,17 +69,70 @@ class storeGUI extends JFrame implements Runnable {
 
 		stockPanel.add(stockScroll);
 
-		JButton btnModifyStock = new JButton("edit inventory");
-		btnModifyStock.setBounds(170, 275, 116, 23);
+		JButton btnModifyStock = new JButton("Edit inventory");
+		btnModifyStock.setBounds(80, 275, 116, 23);
+		btnModifyStock.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent arg0) {
+				new Add_popup("Edit Inventory", "Stock Name", "Amount") {
+
+					@Override
+					public void makeCommand() {
+						String command = "E;";
+						command+=id+";";
+						command+=this.textField.getText()+";";
+						command+=this.textField_1.getText()+";"; //make a Command String, but not send it yet.
+					}
+					
+				};
+			}
+		});
 		stockPanel.add(btnModifyStock);
 
-		JButton btnModifyMaxMin = new JButton("capacity edit");
-		btnModifyMaxMin.setBounds(333, 275, 173, 23);
-		stockPanel.add(btnModifyMaxMin);
+		JButton btnModifyMax = new JButton("Edit Max Capacity");
+		btnModifyMax.setBounds(230, 275, 173, 23);
+		btnModifyMax.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent arg0) {
+				new Add_popup("Edit Max Capacity", "Stock Name", "Max Capacity") {
+
+					@Override
+					public void makeCommand() {
+						String command = "MX;";
+						command+=id+";";
+						command+=this.textField.getText()+";";
+						command+=this.textField_1.getText()+";"; //make a Command String, but not send it yet.
+					}
+					
+				};
+			}
+		});
+		stockPanel.add(btnModifyMax);
+		
+		JButton btnModifyMin = new JButton("Edit Min Stock Amount");
+		btnModifyMin.setBounds(410, 275, 173, 23);
+		btnModifyMin.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent arg0) {
+				new Add_popup("Edit Min Amount", "Stock Name", "Stock Amount") {
+
+					@Override
+					public void makeCommand() {
+						String command = "MN;";
+						command+=id+";";
+						command+=this.textField.getText()+";";
+						command+=this.textField_1.getText()+";"; //make a Command String, but not send it yet.
+					}
+					
+				};
+			}
+		});
+		stockPanel.add(btnModifyMin);
 
 		// 주문관리 탭 패널
 		transPanel = new JPanel();
-		tabbedPane.addTab("order managing", null, transPanel, null);
+		tabbedPane.addTab("Order Managing", null, transPanel, null);
+
 		transPanel.setLayout(null);
 
 		String[] transColumnNames = { "Warehouse name", "goods name", "amount of trasportation", "cost of trasportation", "shipping(Y/N)" };
@@ -90,15 +148,32 @@ class storeGUI extends JFrame implements Runnable {
 		transScroll.setBounds(12, 46, 596, 238);
 		transPanel.add(transScroll);
 
-		JButton btnReceived = new JButton("Receipt of completed");
+		JButton btnReceived = new JButton("Receipt of Completed");
 		btnReceived.setBounds(486, 294, 122, 23);
 		transPanel.add(btnReceived);
 
-		JButton btnNew = new JButton("A new order");
+		JButton btnNew = new JButton("New Order");
 		btnNew.setBounds(12, 10, 140, 23);
+		btnNew.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent arg0) {
+				new Add_popup("New Order", "Stock Name", "Stock Amount") {
+
+					@Override
+					public void makeCommand() {
+						String command = "O;";
+						command+=id+";";
+						command+=this.textField.getText()+";";
+						command+=this.textField_1.getText()+";"; //make a Command String, but not send it yet.
+					}
+					
+				};
+			}
+		});
 		transPanel.add(btnNew);
 
-		JButton btnCancle = new JButton("cancel order");
+		//SHOULD ADD EVENT HANDLER!!
+		JButton btnCancle = new JButton("Cancel Order");
 		btnCancle.setBounds(164, 10, 114, 23);
 		transPanel.add(btnCancle);
 	}
@@ -107,7 +182,7 @@ class storeGUI extends JFrame implements Runnable {
 	public void run() {
 		setVisible(true);
 		while (true) {
-			timeLabel.setText("current time : " + new Date().toString());
+			timeLabel.setText("Current time : " + new Date().toString());
 		}
 	}
 }
@@ -188,12 +263,11 @@ public class Store extends Thread { // 창고, 가게의 공통 상위클래스
 		in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
 		out = new PrintWriter(socket.getOutputStream(), true);
 		if (kind == 2) {
-			Thread gui = new Thread(new storeGUI());
+			Thread gui = new Thread(new storeGUI(id));
 			this.start();
 			gui.start();
-		}
-		else {
-			Thread gui = new Thread(new warehouseGUI());
+		} else {
+			Thread gui = new Thread(new warehouseGUI(id));
 			this.start();
 			gui.start();
 		}

@@ -1,8 +1,8 @@
-import java.awt.EventQueue;
 import java.awt.Font;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.BufferedReader;
+import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
@@ -143,12 +143,13 @@ public class Head extends Thread {
 		private String stockName;
 		private int amount;
 		private boolean confirmed; // 주문 접수 여부
+		private String confirmTime; // Save time log at confirmed
 
-		public Request(String storeName, String stockName, int amount) {
+		public Request(String storeName, String stockName, int amount, boolean confirmed) {
 			this.storeName = storeName;
 			this.stockName = stockName;
 			this.amount = amount;
-			this.confirmed = false;
+			this.confirmed = confirmed;
 		}
 	}
 
@@ -156,13 +157,13 @@ public class Head extends Thread {
 	private String id = "admin";
 	private String password;
 	private warehouseheadGUI frame;
-	private ArrayList<Warehouse> warehouses = new ArrayList<Warehouse>(); // 창고
-																			// 어레이리스트
-	private ArrayList<Store> stores = new ArrayList<Store>(); // 가게 어레이리스트
+	private Object[][] warehouses; //array of array which is used to show the list of warehouses.
+	private Object[][] stores; //array of array which is used to show the list of stores.
 	private ArrayList<Request> requests = new ArrayList<Request>(); // 주문 어레이리스트
 	private Socket socket; // 서버에 연결하기 위한 소켓
 	private BufferedReader in; // 서버와 통신하기위한 in 스트림
 	private PrintWriter out; // out 스트림
+	private BufferedReader fin; // File input stream
 	/* 필드 종료 */
 
 	public void showDetail(Warehouse obj) {
@@ -186,6 +187,24 @@ public class Head extends Thread {
 		// 설정한 소켓에서 스트림 생성
 		in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
 		out = new PrintWriter(socket.getOutputStream(), true);
+		fin = new BufferedReader(new FileReader("data/admin.txt"));
+		while (fin.ready()) {
+			String command = fin.readLine();
+			String[] tokens = command.split(";");
+			switch (tokens[0]) {
+			case "W":
+				String[] warehouseInfo = {tokens[1], tokens[2], tokens[3], tokens[4]};
+				break;
+			case "S":
+				break;
+			case "R": //make Request object and add to 'requests' ArrayList.
+				Request r = new Request(tokens[1], tokens[2], Integer.parseInt(tokens[3]),
+						tokens[4] == "C" ? true : false);
+				requests.add(r);
+				break;
+			}
+		}
+
 		Thread gui = new Thread(new warehouseheadGUI());
 		this.start();
 		gui.start();

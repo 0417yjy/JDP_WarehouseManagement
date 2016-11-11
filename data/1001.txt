@@ -1,0 +1,7 @@
+A Warehouse
+87.4
+44.2
+M|A|50|100|20
+M|B|70|150|50
+O|B Warehouse|A|50|30000|false
+T|A store|92.5|45.0|A|50
