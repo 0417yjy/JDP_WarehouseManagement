@@ -7,6 +7,8 @@ public class Store { //창고, 가게의 공통 상위클래스
 		private int remain; // 재고량
 		private int max; // 최대 수용가능량
 		private int min; // 최소 유지재고량
+		private double address;
+		
 		/* 필드 종료 */
 
 		public Stock(String name, int remain, int max, int min) { // Stock 생성자
@@ -57,6 +59,9 @@ public class Store { //창고, 가게의 공통 상위클래스
 	private String id; // 고유 넘버
 	private String password;
 	private String name;
+	private double address;
+	private String storeName;
+	private double cash;
 	private ArrayList<Stock> stocks = new ArrayList<Stock>(); //재고 어레이리스트
 	private ArrayList<Order> orders = new ArrayList<Order>(); //주문 어레이리스트
 	
