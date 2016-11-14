@@ -5,24 +5,50 @@ import java.io.IOException;
 
 public class GoogMatrixRequest {
 
-    private static final String API_KEY = "AIzaSyAbImqPR7aE4fUL8jyUBhnloMxnA-6zqEo";
+	private static final String API_KEY = "AIzaSyAbImqPR7aE4fUL8jyUBhnloMxnA-6zqEo";
+	private String startAddress; // String address of start point
+	private String targetAddress; // String address of target point
+	// double latitude, longitude of 2 points
+	private double startLatitude, startLongitude, targetLatitude, targetLongitude;
+	private int mode; // if mode = 1 , calculate with two address. else if mode
+						// = 2, calculate with latitude and longitude
 
-  OkHttpClient client = new OkHttpClient();
+	public GoogMatrixRequest(String startAR, String targetAR) { // Address mode
+																// constructor
+		startAddress = startAR;
+		targetAddress = targetAR;
+		mode = 1;
+	}
 
-  public String run(String url) throws IOException {
-    Request request = new Request.Builder()
-        .url(url)
-        .build();
+	public GoogMatrixRequest(double stLa, double stLo, double taLa, double taLo) { // Point
+																					// mode
+																					// constructor
+		startLatitude = stLa;
+		startLongitude = stLo;
+		targetLatitude = taLa;
+		targetLongitude = taLo;
+		mode = 2;
+	}
 
-    Response response = client.newCall(request).execute();
-    return response.body().string();
-  }
+	OkHttpClient client = new OkHttpClient();
 
-  public static void main(String[] args) throws IOException {
-    GoogMatrixRequest request = new GoogMatrixRequest();
-    String url_request = "https://maps.googleapis.com/maps/api/distancematrix/json?origins=Vancouver+BC%7CSeattle&destinations=San+Francisco%7CVictoria+BC&mode=bicycling&language=fr-FR&key=" + API_KEY;
+	public String run(String url) throws IOException {
+		Request request = new Request.Builder().url(url).build();
+		Response response = client.newCall(request).execute();
+		return response.body().string();
+	}
 
-    String response = request.run(url_request);
-    System.out.println(response);
-  }
+	public void calculate() throws IOException {
+		GoogMatrixRequest request = this;
+		String url_request = null;
+		if (mode == 1)
+			url_request = "https://maps.googleapis.com/maps/api/distancematrix/json?origins=" + startAddress
+					+ "&destinations=" + targetAddress + "&key=" + API_KEY;
+		else if (mode == 2)
+			url_request = "https://maps.googleapis.com/maps/api/distancematrix/json?origins=" + startLatitude + ","
+					+ startLongitude + "&destinations=" + targetLatitude + "," + targetLatitude + "&key=" + API_KEY;
+
+		String response = request.run(url_request);
+		System.out.println(response);
+	}
 }
