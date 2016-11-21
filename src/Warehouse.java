@@ -32,18 +32,18 @@ class warehouseGUI extends JFrame implements Runnable {
 		setTitle("Warehouse Management");
 		setResizable(false);
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		setBounds(100, 100, 655, 408);
+		setBounds(100, 100, 755, 408);
 		contentPane = new JPanel();
 		contentPane.setBorder(new EmptyBorder(5, 5, 5, 5));
 		setContentPane(contentPane);
 		contentPane.setLayout(null);
 
 		timeLabel = new JLabel("Current Time : " + new Date().toString());
-		timeLabel.setBounds(386, 10, 251, 15);
+		timeLabel.setBounds(486, 10, 251, 15);
 		contentPane.add(timeLabel);
 
 		JTabbedPane tabbedPane = new JTabbedPane(JTabbedPane.TOP);
-		tabbedPane.setBounds(12, 10, 625, 359);
+		tabbedPane.setBounds(12, 10, 725, 359);
 		contentPane.add(tabbedPane);
 
 		// 재고관리 탭 패널
@@ -62,7 +62,7 @@ class warehouseGUI extends JFrame implements Runnable {
 		stockTable.setFocusable(false);
 		stockTable.setRowSelectionAllowed(true);
 		stockScroll = new JScrollPane(stockTable);
-		stockScroll.setBounds(0, 0, 620, 265);
+		stockScroll.setBounds(0, 0, 720, 265);
 
 		stockPanel.add(stockScroll);
 
@@ -140,11 +140,12 @@ class warehouseGUI extends JFrame implements Runnable {
 		};
 
 		transScroll = new JScrollPane(transTable);
-		transScroll.setBounds(12, 42, 596, 241);
+		transScroll.setBounds(12, 42, 696, 241);
 		transPanel.add(transScroll);
 
-		JButton btnReceived = new JButton("Receipt of Completed");
-		btnReceived.setBounds(486, 294, 122, 23);
+		JButton btnReceived = new JButton("Received");
+		btnReceived.setSize(232, 23);
+		btnReceived.setLocation(636, 294);
 		transPanel.add(btnReceived);
 		
 		JButton btnNew_w = new JButton("New Order");
@@ -186,7 +187,7 @@ class warehouseGUI extends JFrame implements Runnable {
 		};
 
 		sendScroll = new JScrollPane(sendTable);
-		sendScroll.setBounds(12, 10, 596, 274);
+		sendScroll.setBounds(12, 10, 696, 274);
 		sendPanel.add(sendScroll);
 		btnReceived.setBounds(486, 294, 122, 23);
 

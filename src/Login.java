@@ -8,11 +8,13 @@ import java.io.BufferedReader;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.Random;
 
 import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
-import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JPasswordField;
 import javax.swing.JTextField;
@@ -54,8 +56,25 @@ public class Login extends JFrame implements ActionListener {
 	 */
 
 	public static void main(String[] args) {
-		String[] values = {"A", "B"};
-		Object selected = JOptionPane.showInputDialog(null, "Select item to edit", "maximum / minimum inventory edit", JOptionPane.DEFAULT_OPTION, null, values, "0");
+		ArrayList<Integer> tmpintarr = new ArrayList<Integer>();
+		ArrayList<Date> tmpdate = new ArrayList<Date>();
+		Random random = new Random();
+        int maxDataPoints = 30;
+        int maxScore = 100;
+        for (int i = 0; i < maxDataPoints; i++) {
+            tmpintarr.add((int) (random.nextDouble() * maxScore));
+            tmpdate.add(new Date());
+        }
+        new LineGraph(tmpintarr, tmpdate);
+        
+//		try {
+////			new GoogMatrixRequest(37.557540934, 126.998586430, 37.449631235, 126.650927328).calculate();
+//			new GoogMatrixRequest("서울특별시 중구 필동로 1길 30", "강원도 춘천시 강원대학길 1").calculate();
+//		} catch (IOException e1) {
+//			// TODO Auto-generated catch block
+//			e1.printStackTrace();
+//		}
+        
 		EventQueue.invokeLater(new Runnable() { //로그인 프레임 생성
 			public void run() {
 				try {
@@ -137,6 +156,7 @@ public class Login extends JFrame implements ActionListener {
 			inputId = idField.getText();
 			inputPw = passwordField.getText();
 			try {
+				in = new BufferedReader(new FileReader("list.txt"));
 				while (in.ready()) {
 					tmpId = in.readLine();
 					tmpPw = in.readLine();

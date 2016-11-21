@@ -34,6 +34,7 @@ class warehouseheadGUI extends JFrame implements Runnable {
 	public warehouseheadGUI() {
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		setSize(822, 479);
+		setTitle("Head");
 		contentPane = new JPanel();
 		contentPane.setBorder(new EmptyBorder(5, 5, 5, 5));
 		setContentPane(contentPane);
@@ -44,11 +45,11 @@ class warehouseheadGUI extends JFrame implements Runnable {
 		lbTitle.setBounds(12, 10, 256, 19);
 		contentPane.add(lbTitle);
 
-		lbTime = new JLabel("Access time : " + new Date().toString());
+		lbTime = new JLabel("Current time : " + new Date().toString());
 		lbTime.setBounds(386, 10, 251, 15);
 		contentPane.add(lbTime);
 
-		// warehouse 부분 시작
+		// make warehouse table
 		JLabel lblWarehouseInfo = new JLabel("Warehouse Info");
 		lblWarehouseInfo.setFont(new Font("Serif", Font.PLAIN, 13));
 		lblWarehouseInfo.setBounds(12, 36, 99, 16);
@@ -78,9 +79,9 @@ class warehouseheadGUI extends JFrame implements Runnable {
 		scrollWarehouse.setBounds(12, 62, 323, 121);
 		contentPane.add(scrollWarehouse);
 		scrollWarehouse.setViewportView(tableWarehouse);
-		// warehouse 부분 끝
+		// end of making warehouse table
 
-		// store 부분 시작
+		// make store table
 		JLabel lblStoreInfo = new JLabel("Store Info");
 		lblStoreInfo.setFont(new Font("Serif", Font.PLAIN, 13));
 		lblStoreInfo.setBounds(425, 35, 59, 16);
@@ -99,9 +100,9 @@ class warehouseheadGUI extends JFrame implements Runnable {
 		JButton btnStoreDetail = new JButton("Show Detail");
 		btnStoreDetail.setBounds(648, 193, 120, 23);
 		contentPane.add(btnStoreDetail);
-		// store 부분 끝
+		// end of making store table
 
-		// Request 부분 시작
+		// make request table
 		JLabel lblRequest = new JLabel("Request");
 		lblRequest.setFont(new Font("Serif", Font.PLAIN, 14));
 		lblRequest.setBounds(12, 222, 54, 17);
@@ -117,27 +118,27 @@ class warehouseheadGUI extends JFrame implements Runnable {
 		contentPane.add(scrollRequest);
 
 		JButton btnEachProcess = new JButton("Individual treatment");
-		btnEachProcess.setBounds(655, 407, 113, 23);
+		btnEachProcess.setBounds(615, 407, 150, 23);
 		contentPane.add(btnEachProcess);
 
 		JButton btnAllProcess = new JButton("Batch processing");
-		btnAllProcess.setBounds(530, 407, 113, 23);
+		btnAllProcess.setBounds(440, 407, 150, 23);
 		contentPane.add(btnAllProcess);
-		// Request 부분 끝
+		// end of making request table
 	}
 
 	@Override
 	public void run() {
 		setVisible(true);
-		while (true) { // 프레임 상의 변화는 모두 이곳에서 업데이트
-			lbTime.setText("current time : " + new Date().toString());
+		while (true) { // update frame
+			lbTime.setText("Current time : " + new Date().toString());
 		}
 	}
 
 }
 
 public class Head extends Thread {
-	// 내부 주문 접수 클래스
+	// internal request class
 	private class Request {
 		private String storeName;
 		private String stockName;
@@ -153,7 +154,7 @@ public class Head extends Thread {
 		}
 	}
 
-	/* 필드 시작 */
+	/* Field start */
 	private String id = "admin";
 	private String password;
 	private warehouseheadGUI frame;
@@ -164,7 +165,7 @@ public class Head extends Thread {
 	private BufferedReader in; // 서버와 통신하기위한 in 스트림
 	private PrintWriter out; // out 스트림
 	private BufferedReader fin; // File input stream
-	/* 필드 종료 */
+	/* End of field */
 
 	public void showDetail(Warehouse obj) {
 

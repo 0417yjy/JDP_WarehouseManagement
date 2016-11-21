@@ -46,7 +46,7 @@ public class GoogMatrixRequest {
 					+ "&destinations=" + targetAddress + "&key=" + API_KEY;
 		else if (mode == 2)
 			url_request = "https://maps.googleapis.com/maps/api/distancematrix/json?origins=" + startLatitude + ","
-					+ startLongitude + "&destinations=" + targetLatitude + "," + targetLatitude + "&key=" + API_KEY;
+					+ startLongitude + "&destinations=" + targetLatitude + "," + targetLongitude + "&key=" + API_KEY;
 
 		String response = request.run(url_request);
 		System.out.println(response);
