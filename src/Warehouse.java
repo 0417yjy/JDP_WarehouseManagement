@@ -23,11 +23,13 @@ class warehouseGUI extends JFrame implements Runnable {
 	private JPanel stockPanel, transPanel, sendPanel;
 	private JLabel timeLabel;
 	private String id;
+	private Warehouse form;
 
 	/**
 	 * Create the frame.
 	 */
-	public warehouseGUI(String id) {
+	public warehouseGUI(Warehouse form, String id) {
+		this.form = form;
 		this.id = id;
 		setTitle("Warehouse Management");
 		setResizable(false);
@@ -39,7 +41,7 @@ class warehouseGUI extends JFrame implements Runnable {
 		contentPane.setLayout(null);
 
 		timeLabel = new JLabel("Current Time : " + new Date().toString());
-		timeLabel.setBounds(486, 10, 251, 15);
+		timeLabel.setBounds(466, 10, 251, 15);
 		contentPane.add(timeLabel);
 
 		JTabbedPane tabbedPane = new JTabbedPane(JTabbedPane.TOP);
@@ -71,14 +73,16 @@ class warehouseGUI extends JFrame implements Runnable {
 		btnModifyStock.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent arg0) {
-				new Add_popup("Edit Inventory", "Stock Name", "Amount") {
+				new Add_popup("Edit Inventory", "Product ID", "Quantity") {
 
 					@Override
 					public void makeCommand() {
 						String command = "E;";
 						command+=id+";";
 						command+=this.textField.getText()+";";
-						command+=this.textField_1.getText()+";"; //make a Command String, but not send it yet.
+						command+=this.textField_1.getText()+";"; 
+						form.getOut().println(command);
+						//make a Command String, but not send it yet.
 					}
 					
 				};
@@ -91,14 +95,16 @@ class warehouseGUI extends JFrame implements Runnable {
 		btnModifyMax.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent arg0) {
-				new Add_popup("Edit Max Capacity", "Stock Name", "Max Capacity") {
+				new Add_popup("Edit Max Capacity", "Product ID", "Max Capacity") {
 
 					@Override
 					public void makeCommand() {
 						String command = "MX;";
 						command+=id+";";
 						command+=this.textField.getText()+";";
-						command+=this.textField_1.getText()+";"; //make a Command String, but not send it yet.
+						command+=this.textField_1.getText()+";"; 
+						form.getOut().println(command);
+						//make a Command String, but not send it yet.
 					}
 					
 				};
@@ -111,14 +117,16 @@ class warehouseGUI extends JFrame implements Runnable {
 		btnModifyMin.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent arg0) {
-				new Add_popup("Edit Min Amount", "Stock Name", "Stock Amount") {
+				new Add_popup("Edit Min Quantity", "Product ID", "Min Quantity") {
 
 					@Override
 					public void makeCommand() {
 						String command = "MN;";
 						command+=id+";";
 						command+=this.textField.getText()+";";
-						command+=this.textField_1.getText()+";"; //make a Command String, but not send it yet.
+						command+=this.textField_1.getText()+";"; 
+						form.getOut().println(command);
+						//make a Command String, but not send it yet.
 					}
 					
 				};
@@ -154,14 +162,16 @@ class warehouseGUI extends JFrame implements Runnable {
 		btnNew_w.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent arg0) {
-				new Add_popup("New Order", "Stock Name", "Stock Amount") {
+				new Add_popup("New Order", "Product ID", "Product Quantity") {
 
 					@Override
 					public void makeCommand() {
 						String command = "O;";
 						command+=id+";";
 						command+=this.textField.getText()+";";
-						command+=this.textField_1.getText()+";"; //make a Command String, but not send it yet.
+						command+=this.textField_1.getText()+";"; 
+						form.getOut().println(command);
+						//make a Command String, but not send it yet.
 					}
 					
 				};

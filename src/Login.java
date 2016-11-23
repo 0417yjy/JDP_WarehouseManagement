@@ -56,32 +56,22 @@ public class Login extends JFrame implements ActionListener {
 	 */
 
 	public static void main(String[] args) {
-		ArrayList<ArrayList<Integer>> tmpintarr = new ArrayList<ArrayList<Integer>>();
-		ArrayList<ArrayList<Date>> tmpdate = new ArrayList<ArrayList<Date>>();
-		Random random = new Random();
-		int maxDataPoints = 30;
-		int maxScore = 100;
-		for (int j = 0; j < 1; j++) {
-			ArrayList<Integer> intarr = new ArrayList<Integer>();
-			ArrayList<Date> datearr = new ArrayList<Date>();
-			for (int i = 0; i < maxDataPoints; i++) {
-				intarr.add((int) (random.nextDouble() * maxScore));
-				datearr.add(new Date());
-			}
-			tmpintarr.add(intarr);
-			tmpdate.add(datearr);
-		}
-		new LineGraph(tmpintarr, tmpdate);
-
-		// try {
-		//// new GoogMatrixRequest(37.557540934, 126.998586430, 37.449631235,
-		// 126.650927328).calculate();
-		// new GoogMatrixRequest("서울특별시 중구 필동로 1길 30", "강원도 춘천시 강원대학길
-		// 1").calculate();
-		// } catch (IOException e1) {
-		// // TODO Auto-generated catch block
-		// e1.printStackTrace();
-		// }
+//		ArrayList<ArrayList<Integer>> tmpintarr = new ArrayList<ArrayList<Integer>>();
+//		ArrayList<ArrayList<Date>> tmpdate = new ArrayList<ArrayList<Date>>();
+//		Random random = new Random();
+//		int maxDataPoints = 30;
+//		int maxScore = 100;
+//		for (int j = 0; j < 1; j++) {
+//			ArrayList<Integer> intarr = new ArrayList<Integer>();
+//			ArrayList<Date> datearr = new ArrayList<Date>();
+//			for (int i = 0; i < maxDataPoints; i++) {
+//				intarr.add((int) (random.nextDouble() * maxScore));
+//				datearr.add(new Date());
+//			}
+//			tmpintarr.add(intarr);
+//			tmpdate.add(datearr);
+//		}
+//		new LineGraph(tmpintarr, tmpdate);
 
 		EventQueue.invokeLater(new Runnable() { // 로그인 프레임 생성
 			public void run() {

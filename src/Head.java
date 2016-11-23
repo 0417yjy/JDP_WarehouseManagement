@@ -19,18 +19,14 @@ import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.border.EmptyBorder;
 
-class warehouseheadGUI extends JFrame implements Runnable {
+class warehouseheadGUI extends JFrame implements Runnable, ActionListener {
 	private static final long serialVersionUID = 1L;
 	private JPanel contentPane;
 	private JTable tableWarehouse;
 	private JTable storeWarehouse;
 	private JTable tableRequest;
 	public JLabel lbTime;
-
-	/**
-	 * Create the frame.
-	 */
-
+	
 	public warehouseheadGUI() {
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		setSize(822, 479);
@@ -135,6 +131,11 @@ class warehouseheadGUI extends JFrame implements Runnable {
 		}
 	}
 
+	@Override
+	public void actionPerformed(ActionEvent arg0) {
+		if(arg0.getSource()==
+	}
+
 }
 
 public class Head extends Thread {
@@ -225,7 +226,6 @@ public class Head extends Thread {
 					// 로그인 성공 메시지 팝업
 					JOptionPane.showMessageDialog(frame, "You are connected to server.");
 				}
-
 			} catch (IOException e) {
 				e.printStackTrace();
 			}

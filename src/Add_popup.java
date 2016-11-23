@@ -55,6 +55,7 @@ public abstract class Add_popup extends JFrame implements ActionListener {
 		btnNewButton = new JButton("OK");
 		btnNewButton.setBounds(30, 100, 70, 23);
 		contentPane.add(btnNewButton);
+		btnNewButton.addActionListener(this);
 		
 		btnNewButton_1 = new JButton("Cancel");
 		btnNewButton_1.setBounds(140, 100, 90, 23);
