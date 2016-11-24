@@ -5,6 +5,8 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.Socket;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Date;
 
@@ -19,6 +21,10 @@ import javax.swing.JTable;
 import javax.swing.border.EmptyBorder;
 
 class storeGUI extends JFrame implements Runnable {
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
 	private JPanel contentPane;
 	private JTable stockTable, transTable;
 	private JScrollPane stockScroll, transScroll;
@@ -26,11 +32,14 @@ class storeGUI extends JFrame implements Runnable {
 	private JLabel timeLabel;
 	private String id;
 	private Store form;
+	private ResultSet rs;
 
 	/**
 	 * Create the frame.
+	 * 
+	 * @throws SQLException
 	 */
-	public storeGUI(Store form, String id) {
+	public storeGUI(Store form, String id) throws SQLException {
 		this.form = form;
 		this.id = id;
 		setTitle("Store Management");
@@ -51,19 +60,40 @@ class storeGUI extends JFrame implements Runnable {
 		tabbedPane.setBounds(12, 10, 625, 359);
 		contentPane.add(tabbedPane);
 
-		// 재고관리 탭 패널
+		// manage inventory tab panel
 		stockPanel = new JPanel();
 		tabbedPane.addTab("Manage inventory", null, stockPanel, null);
 		stockPanel.setLayout(null);
-		String[] stockColumnNames = { "name", "amount", "Maximum capacity", "Maintaining minimum quantity" };
-		Object[][] stockData = { { "A", new Integer(50), new Integer(100), new Integer(20) },
-				{ "B", new Integer(70), new Integer(150), new Integer(50) } };
-		stockTable = new JTable(stockData, stockColumnNames) {
-			@Override
-			public boolean isCellEditable(int row, int column) {
-				return false;
+
+		rs = DataBaseConnect.execute("select count(*) from store_inventory where store_id='" + id + "'");
+
+		String[] stockColumnNames = { "Product_ID", "Product_Name", "Quantity", "Maximum capacity",
+				"Maintaining minimum quantity" };
+		if (rs.next()) {
+			Object[][] stockData = new Object[rs.getInt(1)][];
+
+			rs = DataBaseConnect.execute("select * from store_inventory where store_id='" + id + "'");
+			for (int i = 0; i < stockData.length; i++) {
+				if (rs.next()) {
+					String strProduct_Name = null;
+					ResultSet pdNameSet = DataBaseConnect
+							.execute("select * from product where product_id='" + rs.getString("product_id") + "'");
+					if(pdNameSet.next())
+						strProduct_Name = pdNameSet.getString("product_name");
+					Object[] tmpdata = { rs.getString("product_id"), strProduct_Name, rs.getInt("amount"),
+							rs.getInt("product_max"), rs.getInt("product_min") };
+					stockData[i] = tmpdata;
+				}
 			}
-		};
+			stockTable = new JTable(stockData, stockColumnNames) {
+				private static final long serialVersionUID = 1L;
+
+				@Override
+				public boolean isCellEditable(int row, int column) {
+					return false;
+				}
+			};
+		}
 		stockTable.setFocusable(false);
 		stockTable.setRowSelectionAllowed(true);
 		stockScroll = new JScrollPane(stockTable);
@@ -77,7 +107,7 @@ class storeGUI extends JFrame implements Runnable {
 			@Override
 			public void actionPerformed(ActionEvent arg0) {
 				new Add_popup("Edit Inventory", "Product ID", "Quantity") {
-
+					private static final long serialVersionUID = 1L;
 					@Override
 					public void makeCommand() {
 						String command = "E;";
@@ -85,9 +115,7 @@ class storeGUI extends JFrame implements Runnable {
 						command += this.textField.getText() + ";";
 						command += this.textField_1.getText() + ";";
 						form.getOut().println(command);
-						// make a Command String, but not send it yet.
 					}
-
 				};
 			}
 		});
@@ -99,6 +127,7 @@ class storeGUI extends JFrame implements Runnable {
 			@Override
 			public void actionPerformed(ActionEvent arg0) {
 				new Add_popup("Edit Max Capacity", "Product ID", "Max Capacity") {
+					private static final long serialVersionUID = 1L;
 
 					@Override
 					public void makeCommand() {
@@ -107,9 +136,7 @@ class storeGUI extends JFrame implements Runnable {
 						command += this.textField.getText() + ";";
 						command += this.textField_1.getText() + ";";
 						form.getOut().println(command);
-						// make a Command String, but not send it yet.
 					}
-
 				};
 			}
 		});
@@ -121,6 +148,7 @@ class storeGUI extends JFrame implements Runnable {
 			@Override
 			public void actionPerformed(ActionEvent arg0) {
 				new Add_popup("Edit Min Quantity", "Product ID", "Min Quantity") {
+					private static final long serialVersionUID = 1L;
 
 					@Override
 					public void makeCommand() {
@@ -129,7 +157,6 @@ class storeGUI extends JFrame implements Runnable {
 						command += this.textField.getText() + ";";
 						command += this.textField_1.getText() + ";";
 						form.getOut().println(command);
-						// make a Command String, but not send it yet.
 					}
 
 				};
@@ -137,7 +164,7 @@ class storeGUI extends JFrame implements Runnable {
 		});
 		stockPanel.add(btnModifyMin);
 
-		// 주문관리 탭 패널
+		// order managing tab panel
 		transPanel = new JPanel();
 		tabbedPane.addTab("Order Managing", null, transPanel, null);
 
@@ -147,6 +174,11 @@ class storeGUI extends JFrame implements Runnable {
 				"cost of trasportation", "shipping(Y/N)" };
 		Object[][] transData = { { "A Warehouse", "A", new Integer(50), new Integer(30000), new Boolean(false) } };
 		transTable = new JTable(transData, transColumnNames) {
+			/**
+			 * 
+			 */
+			private static final long serialVersionUID = 1L;
+
 			@Override
 			public boolean isCellEditable(int row, int column) {
 				return false;
@@ -167,6 +199,7 @@ class storeGUI extends JFrame implements Runnable {
 			@Override
 			public void actionPerformed(ActionEvent arg0) {
 				new Add_popup("New Order", "Product ID", "Product Quantity") {
+					private static final long serialVersionUID = 1L;
 
 					@Override
 					public void makeCommand() {
