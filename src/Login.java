@@ -5,12 +5,10 @@ import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.BufferedReader;
-import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.Random;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 
 import javax.swing.JButton;
 import javax.swing.JFrame;
@@ -21,6 +19,10 @@ import javax.swing.JTextField;
 import javax.swing.border.EmptyBorder;
 
 public class Login extends JFrame implements ActionListener {
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = -7921901733199665301L;
 	// private class Account { // 계정 클래스
 	// private String id;
 	// private String pw;
@@ -50,28 +52,35 @@ public class Login extends JFrame implements ActionListener {
 	private String tmpId; // 임시 id, pw 저장
 	private String tmpPw;
 	private BufferedReader in;
+	private ResultSet rs;
 
 	/**
 	 * Launch the application.
+	 * 
+	 * @throws SQLException
 	 */
 
-	public static void main(String[] args) {
-//		ArrayList<ArrayList<Integer>> tmpintarr = new ArrayList<ArrayList<Integer>>();
-//		ArrayList<ArrayList<Date>> tmpdate = new ArrayList<ArrayList<Date>>();
-//		Random random = new Random();
-//		int maxDataPoints = 30;
-//		int maxScore = 100;
-//		for (int j = 0; j < 1; j++) {
-//			ArrayList<Integer> intarr = new ArrayList<Integer>();
-//			ArrayList<Date> datearr = new ArrayList<Date>();
-//			for (int i = 0; i < maxDataPoints; i++) {
-//				intarr.add((int) (random.nextDouble() * maxScore));
-//				datearr.add(new Date());
-//			}
-//			tmpintarr.add(intarr);
-//			tmpdate.add(datearr);
-//		}
-//		new LineGraph(tmpintarr, tmpdate);
+	public static void main(String[] args) throws SQLException {
+		// ArrayList<ArrayList<Integer>> tmpintarr = new
+		// ArrayList<ArrayList<Integer>>();
+		// ArrayList<ArrayList<Date>> tmpdate = new
+		// ArrayList<ArrayList<Date>>();
+		// Random random = new Random();
+		// int maxDataPoints = 30;
+		// int maxScore = 100;
+		// for (int j = 0; j < 1; j++) {
+		// ArrayList<Integer> intarr = new ArrayList<Integer>();
+		// ArrayList<Date> datearr = new ArrayList<Date>();
+		// for (int i = 0; i < maxDataPoints; i++) {
+		// intarr.add((int) (random.nextDouble() * maxScore));
+		// datearr.add(new Date());
+		// }
+		// tmpintarr.add(intarr);
+		// tmpdate.add(datearr);
+		// }
+		// new LineGraph(tmpintarr, tmpdate);
+		DataBaseConnect.connect("1234");
+		DataBaseConnect.execute("use wms");
 
 		EventQueue.invokeLater(new Runnable() { // 로그인 프레임 생성
 			public void run() {
@@ -126,78 +135,58 @@ public class Login extends JFrame implements ActionListener {
 		passwordField = new JPasswordField();
 		passwordField.setBounds(106, 92, 142, 21);
 		contentPane.add(passwordField);
-
-		try {
-			in = new BufferedReader(new FileReader("list.txt")); // 명단 리스트 파일
-																	// 입력용 객체
-
-		} catch (FileNotFoundException e1) { // 파일이 없으면 에러 메시지 출력
-			e1.printStackTrace();
-			JFrame ef = new JFrame("Error");
-			ef.setVisible(true);
-			ef.setSize(250, 100);
-			ef.setLocation(dim.width / 2 - this.getSize().width / 2, dim.height / 2 - this.getSize().height / 2);
-			ef.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-			ef.getContentPane().setLayout(null);
-			JLabel errorMessage = new JLabel("Cannot find the file");
-			errorMessage.setBounds(30, 10, 200, 50);
-			ef.getContentPane().add(errorMessage);
-		}
-		;
-
 	}
 
-	@SuppressWarnings("deprecation") // 보안같은건 무시합니다
+	@SuppressWarnings("deprecation")
 	@Override
+	// 'Proceed' Button event handler method
 	public void actionPerformed(ActionEvent e) {
-		if (e.getSource() == btnProceed) {
-			inputId = idField.getText();
-			inputPw = passwordField.getText();
-			try {
-				in = new BufferedReader(new FileReader("list.txt"));
-				while (in.ready()) {
-					tmpId = in.readLine();
-					tmpPw = in.readLine();
-					if (inputId.equals(tmpId) && inputPw.equals(tmpPw)) {
-						if (inputId.equals("admin")) {
-							// 헤드 GUI 생성 & 로그인 GUI 닫기
-							this.dispose();
-							try {
-								new Head();
-							} catch (Exception e1) {
-								e1.printStackTrace();
-							}
-						} else if (inputId.charAt(0) == '1') {
-							// 창고GUI 생성
-							try {
-								new Warehouse(inputId, inputPw, 1);
-							} catch (Exception e1) {
-								e1.printStackTrace();
-							}
-							this.dispose();
-						} else if (inputId.charAt(0) == '2') {
-							// 가게GUI 생성
-							try {
-								new Store(inputId, inputPw, 2);
-							} catch (Exception e1) {
-								e1.printStackTrace();
-							}
-							this.dispose();
-						} else if (inputId.equals("server")) {
-							this.dispose();
-							try {
-								new Server(); // 서버 호스트
-							} catch (Exception e1) {
-								e1.printStackTrace();
-								System.out.println("Server has already been hosted or has error.");
-							}
+		inputId = idField.getText();
+		inputPw = passwordField.getText();
+		try {
+			rs = DataBaseConnect.execute("select * from identification");
+			while (rs.next()) {
+				tmpId = rs.getString(1);
+				tmpPw = rs.getString(2);
+				if (inputId.equals(tmpId) && inputPw.equals(tmpPw)) {
+					if (inputId.equals("admin")) {
+						// 헤드 GUI 생성 & 로그인 GUI 닫기
+						this.dispose();
+						try {
+							new Head();
+						} catch (Exception e1) {
+							e1.printStackTrace();
 						}
+					} else if (inputId.equals("server")) {
+						this.dispose();
+						try {
+							new Server(); // 서버 호스트
+						} catch (Exception e1) {
+							e1.printStackTrace();
+							System.out.println("Server has already been hosted or has error.");
+						}
+					} else if (!rs.getBoolean("isStore")) {
+						// 창고GUI 생성
+						try {
+							new Warehouse(inputId, inputPw, 1);
+						} catch (Exception e1) {
+							e1.printStackTrace();
+						}
+						this.dispose();
+					} else if (rs.getBoolean("isStore")) {
+						// 가게GUI 생성
+						try {
+							new Store(inputId, inputPw, 2);
+						} catch (Exception e1) {
+							e1.printStackTrace();
+						}
+						this.dispose();
 					}
 				}
-				lblUserAuthorisationRequired.setText("Invalid ID");
-			} catch (IOException e2) {
-				e2.printStackTrace();
 			}
+			lblUserAuthorisationRequired.setText("Invalid ID");
+		} catch (SQLException e1) {
+			e1.printStackTrace();
 		}
 	}
 }
