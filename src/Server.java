@@ -4,6 +4,8 @@ import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.HashSet;
 
 public class Server {
@@ -11,6 +13,7 @@ public class Server {
 	private static HashSet<PrintWriter> writers = new HashSet<PrintWriter>();
 	// 각 클라이언트들의 id 관리
 	private static HashSet<String> ids = new HashSet<String>();
+	private static ResultSet rs;
 
 	// 서버 생성자
 	public Server() throws Exception {
@@ -66,13 +69,31 @@ public class Server {
 					if (input == null) { // null이면 리턴
 						return;
 					}
-					for (PrintWriter writer : writers) { // 다른 클라이언트들에게 해당 메시지
-															// 송출
-						System.out.println(input);
-						writer.println(input);
+					for (PrintWriter writer : writers) { // do jobs
+						String[] commands = input.split(";");
+						boolean isStore = false;
+						switch (commands[0]) {
+						case "E": // edit inventory
+							// check if this member is store
+							rs = DataBaseConnect
+									.execute("select isStore from identification where id='" + commands[1] + "'");
+							if (rs.next()) {
+								isStore = rs.getBoolean(1);
+							}
+							if (isStore) {
+								DataBaseConnect.update("update store_inventory set amount=" + commands[3]
+										+ " where store_id=" + commands[1] + " and product_id=" + commands[2]);
+							} else {
+								DataBaseConnect.update("update warehouse_inventory set amount=" + commands[3]
+										+ " where warehouse_id=" + commands[1] + " and product_id=" + commands[2]);
+							}
+							break;
+						}
 					}
 				}
 			} catch (IOException e) {
+				e.printStackTrace();
+			} catch (SQLException e) {
 				e.printStackTrace();
 			} finally {
 				// 클라이언트가 종료됐을 때 해당 클라이언트의 PrintWriter 객체와 id 삭제
