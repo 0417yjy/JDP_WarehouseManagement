@@ -87,6 +87,7 @@ public class Server {
 								DataBaseConnect.update("update warehouse_inventory set amount=" + commands[3]
 										+ " where warehouse_id=" + commands[1] + " and product_id=" + commands[2]);
 							}
+							out.println(input+"has completed");
 							break;
 						}
 					}
