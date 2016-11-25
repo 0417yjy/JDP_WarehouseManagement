@@ -387,8 +387,10 @@ public class Store extends Thread { // 창고, 가게의 공통 상위클래스
 						storeForm.setStockData(storeForm.getInventoryData(storeForm.getStockRows()));
 						storeForm.getStockModel().setDataVector(storeForm.getStockData(), storeForm.getStockColumnNames());
 					}
-					else
-						warehouseForm.getStockModel().fireTableDataChanged();
+					else{
+						warehouseForm.setStockData(warehouseForm.getInventoryData(warehouseForm.getStockRows()));
+						warehouseForm.getStockModel().setDataVector(warehouseForm.getStockData(), warehouseForm.getStockColumnNames());
+					}
 				if (command.startsWith("Verifying"))
 					out.println(this.id);
 				if (command.startsWith("Accepted")) {

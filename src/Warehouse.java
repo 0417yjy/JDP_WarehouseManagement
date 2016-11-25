@@ -1,9 +1,8 @@
-import java.util.ArrayList;
-
-import java.awt.BorderLayout;
-import java.awt.EventQueue;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.Date;
 
 import javax.swing.JButton;
@@ -14,21 +13,39 @@ import javax.swing.JScrollPane;
 import javax.swing.JTabbedPane;
 import javax.swing.JTable;
 import javax.swing.border.EmptyBorder;
+import javax.swing.table.DefaultTableModel;
 
 class warehouseGUI extends JFrame implements Runnable {
 
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 8574013422604253111L;
 	private JPanel contentPane;
+	private DefaultTableModel stockModel, transModel, sendModel;
 	private JTable stockTable, transTable, sendTable;
 	private JScrollPane stockScroll, transScroll, sendScroll;
 	private JPanel stockPanel, transPanel, sendPanel;
 	private JLabel timeLabel;
 	private String id;
 	private Warehouse form;
+	private ResultSet rs;
+	private final String[] stockColumnNames = { "Product_ID", "Product_Name", "Quantity", "Maximum capacity",
+			"Maintaining minimum quantity" };
+	private final String[] transColumnNames = { "Warehouse name", "goods name", "amount of trasportation",
+			"cost of trasportation", "shipping(Y/N)" };
+	private final String[] sendColumnNames = { "store name", "x", "y", "name of goods", "amount of transportation" };
+	private Object[][] stockData, transData, sendData;
+	private int stockRows, transRows, sendRows;
+
+	
 
 	/**
 	 * Create the frame.
+	 * 
+	 * @throws SQLException
 	 */
-	public warehouseGUI(Warehouse form, String id) {
+	public warehouseGUI(Warehouse form, String id) throws SQLException {
 		this.form = form;
 		this.id = id;
 		setTitle("Warehouse Management");
@@ -48,19 +65,25 @@ class warehouseGUI extends JFrame implements Runnable {
 		tabbedPane.setBounds(12, 10, 725, 359);
 		contentPane.add(tabbedPane);
 
-		// 재고관리 탭 패널
+		// manage inventory tab panel
 		stockPanel = new JPanel();
 		tabbedPane.addTab("Manage inventory", null, stockPanel, null);
 		stockPanel.setLayout(null);
-		String[] stockColumnNames = { "name", "amount", "Maximum capacity", "Maintaining minimum quantity" };
-		Object[][] stockData = { { "A", new Integer(50), new Integer(100), new Integer(20) },
-				{ "B", new Integer(70), new Integer(150), new Integer(50) } };
-		stockTable = new JTable(stockData, stockColumnNames) {
-			@Override
-			public boolean isCellEditable(int row, int column) {
-				return false;
-			}
-		};
+
+		rs = DataBaseConnect.execute("select count(*) from warehouse_inventory where warehouse_id='" + id + "'");
+		if (rs.next()) {
+			stockRows = rs.getInt(1);
+			stockData = getInventoryData(stockRows);
+			stockModel = new DefaultTableModel(stockData, stockColumnNames);
+			stockTable = new JTable(stockModel) {
+				private static final long serialVersionUID = 1L;
+
+				@Override
+				public boolean isCellEditable(int row, int column) {
+					return false;
+				}
+			};
+		}
 		stockTable.setFocusable(false);
 		stockTable.setRowSelectionAllowed(true);
 		stockScroll = new JScrollPane(stockTable);
@@ -74,17 +97,16 @@ class warehouseGUI extends JFrame implements Runnable {
 			@Override
 			public void actionPerformed(ActionEvent arg0) {
 				new Add_popup("Edit Inventory", "Product ID", "Quantity") {
+					private static final long serialVersionUID = -5900886092579849605L;
 
 					@Override
 					public void makeCommand() {
 						String command = "E;";
-						command+=id+";";
-						command+=this.textField.getText()+";";
-						command+=this.textField_1.getText()+";"; 
+						command += id + ";";
+						command += this.textField.getText() + ";";
+						command += this.textField_1.getText() + ";";
 						form.getOut().println(command);
-						//make a Command String, but not send it yet.
 					}
-					
 				};
 			}
 		});
@@ -96,51 +118,52 @@ class warehouseGUI extends JFrame implements Runnable {
 			@Override
 			public void actionPerformed(ActionEvent arg0) {
 				new Add_popup("Edit Max Capacity", "Product ID", "Max Capacity") {
+					private static final long serialVersionUID = 2787892723973887959L;
 
 					@Override
 					public void makeCommand() {
 						String command = "MX;";
-						command+=id+";";
-						command+=this.textField.getText()+";";
-						command+=this.textField_1.getText()+";"; 
+						command += id + ";";
+						command += this.textField.getText() + ";";
+						command += this.textField_1.getText() + ";";
 						form.getOut().println(command);
-						//make a Command String, but not send it yet.
 					}
-					
 				};
 			}
 		});
 		stockPanel.add(btnModifyMax);
-		
+
 		JButton btnModifyMin = new JButton("Edit Min Stock Amount");
 		btnModifyMin.setBounds(410, 275, 173, 23);
 		btnModifyMin.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent arg0) {
 				new Add_popup("Edit Min Quantity", "Product ID", "Min Quantity") {
+					private static final long serialVersionUID = -6873839333911506692L;
 
 					@Override
 					public void makeCommand() {
 						String command = "MN;";
-						command+=id+";";
-						command+=this.textField.getText()+";";
-						command+=this.textField_1.getText()+";"; 
+						command += id + ";";
+						command += this.textField.getText() + ";";
+						command += this.textField_1.getText() + ";";
 						form.getOut().println(command);
-						//make a Command String, but not send it yet.
 					}
-					
+
 				};
 			}
 		});
 		stockPanel.add(btnModifyMin);
 
-		// 주문관리 탭 패널
+		// order management tab panel
 		transPanel = new JPanel();
 		tabbedPane.addTab("Order Management", null, transPanel, null);
 		transPanel.setLayout(null);
-		String[] transColumnNames = { "Warehouse name", "goods name", "amount of trasportation", "cost of trasportation", "shipping(Y/N)" };
 		Object[][] transData = { { "B warehouse", "A", new Integer(50), new Integer(30000), new Boolean(false) } };
-		transTable = new JTable(transData, transColumnNames) {
+		transModel = new DefaultTableModel(transData, transColumnNames);
+		transTable = new JTable(transModel) {
+			private static final long serialVersionUID = 2039073276504313907L;
+
 			@Override
 			public boolean isCellEditable(int row, int column) {
 				return false;
@@ -155,7 +178,7 @@ class warehouseGUI extends JFrame implements Runnable {
 		btnReceived.setSize(232, 23);
 		btnReceived.setLocation(636, 294);
 		transPanel.add(btnReceived);
-		
+
 		JButton btnNew_w = new JButton("New Order");
 		btnNew_w.setSize(140, 23);
 		btnNew_w.setLocation(12, 10);
@@ -164,16 +187,21 @@ class warehouseGUI extends JFrame implements Runnable {
 			public void actionPerformed(ActionEvent arg0) {
 				new Add_popup("New Order", "Product ID", "Product Quantity") {
 
+					/**
+					 * 
+					 */
+					private static final long serialVersionUID = -8538983632514872777L;
+
 					@Override
 					public void makeCommand() {
 						String command = "O;";
-						command+=id+";";
-						command+=this.textField.getText()+";";
-						command+=this.textField_1.getText()+";"; 
+						command += id + ";";
+						command += this.textField.getText() + ";";
+						command += this.textField_1.getText() + ";";
 						form.getOut().println(command);
-						//make a Command String, but not send it yet.
+						// make a Command String, but not send it yet.
 					}
-					
+
 				};
 			}
 		});
@@ -186,10 +214,11 @@ class warehouseGUI extends JFrame implements Runnable {
 		sendPanel = new JPanel();
 		tabbedPane.addTab("Transprotation Management", null, sendPanel, null);
 		sendPanel.setLayout(null);
+		Object[][] sendData = { { "A가게", "92.5", "45.0", "A", new Integer(50) } };
+		sendModel = new DefaultTableModel(sendData, sendColumnNames);
+		sendTable = new JTable(sendModel) {
+			private static final long serialVersionUID = -970427320898634808L;
 
-		String[] sendColumnNames = { "store name", "x", "y", "name of goods", "amount of transportation" };
-		Object[][] sendData = { { "A가게", "92.5", "45.0", "A", new Integer(50)} };
-		sendTable = new JTable(sendData, sendColumnNames) {
 			@Override
 			public boolean isCellEditable(int row, int column) {
 				return false;
@@ -201,9 +230,7 @@ class warehouseGUI extends JFrame implements Runnable {
 		sendPanel.add(sendScroll);
 		btnReceived.setBounds(486, 294, 122, 23);
 
-		
-
-		JButton btnSended = new JButton("Shipped");//발생완료
+		JButton btnSended = new JButton("Shipped");// 발생완료
 		btnSended.setSize(114, 23);
 		btnSended.setLocation(494, 294);
 		btnCancle.setBounds(360, 294, 114, 23);
@@ -218,16 +245,82 @@ class warehouseGUI extends JFrame implements Runnable {
 		}
 	}
 
+	public Object[][] getInventoryData(int columns) throws SQLException {
+		Object[][] stockData = new Object[columns][];
+
+		rs = DataBaseConnect.execute("select * from warehouse_inventory where warehouse_id='" + id + "'");
+		for (int i = 0; i < stockData.length; i++) {
+			if (rs.next()) {
+				String strProduct_Name = null;
+				ResultSet pdNameSet = DataBaseConnect
+						.execute("select * from product where product_id='" + rs.getString("product_id") + "'");
+				if (pdNameSet.next())
+					strProduct_Name = pdNameSet.getString("product_name");
+				Object[] tmpdata = { rs.getString("product_id"), strProduct_Name, rs.getInt("amount"),
+						rs.getInt("product_max"), rs.getInt("product_min") };
+				stockData[i] = tmpdata;
+			}
+		}
+		return stockData;
+	}
+
+	public DefaultTableModel getStockModel() {
+		return stockModel;
+	}
+
+	public DefaultTableModel getTransModel() {
+		return transModel;
+	}
+
+	public DefaultTableModel getSendModel() {
+		return sendModel;
+	}
+	
+	public Object[][] getStockData() {
+		return stockData;
+	}
+
+	public void setStockData(Object[][] stockData) {
+		this.stockData = stockData;
+	}
+
+	public Object[][] getTransData() {
+		return transData;
+	}
+
+	public void setTransData(Object[][] transData) {
+		this.transData = transData;
+	}
+
+	public String[] getStockColumnNames() {
+		return stockColumnNames;
+	}
+
+	public String[] getTransColumnNames() {
+		return transColumnNames;
+	}
+
+	public String[] getSendColumnNames() {
+		return sendColumnNames;
+	}
+
+	public int getStockRows() {
+		return stockRows;
+	}
+
+	public int getTransRows() {
+		return transRows;
+	}
 }
 
 public class Warehouse extends Store {
-	//내부 운송 클래스
+	// 내부 운송 클래스
 	private class Transport {
-		private String storeName; //가게명
-		private String stockName; //재고명
-		private double x, y; //목표지점 좌표
-		private int amount; //운송량
-		
+		private String storeName; // 가게명
+		private String stockName; // 재고명
+		private double x, y; // 목표지점 좌표
+		private int amount; // 운송량
+
 		public Transport(String storeName, String stockName, double x, double y, int amount) {
 			this.stockName = storeName;
 			this.stockName = stockName;
@@ -235,13 +328,13 @@ public class Warehouse extends Store {
 			this.y = y;
 			this.amount = amount;
 		}
-		
+
 	}
-	
-	public Warehouse(String id, String password, int kind) throws Exception { //Warehouse 생성자
+
+	public Warehouse(String id, String password, int kind) throws Exception { // Warehouse
+																				// 생성자
 		super(id, password, kind);
 	}
-	
+
 	private ArrayList<Transport> transports = new ArrayList<Transport>();
 }
-
