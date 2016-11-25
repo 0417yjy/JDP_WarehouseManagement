@@ -35,6 +35,14 @@ public class DataBaseConnect {
 		}
 		return rs;
 	}
+	
+	public static void update(String query) {
+		try {
+			st.executeUpdate(query);
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+	}
 
 	public static boolean getBoolValue(int tinyint) {
 		return tinyint == 0 ? false : true;
