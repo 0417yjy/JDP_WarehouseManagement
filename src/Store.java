@@ -19,6 +19,7 @@ import javax.swing.JScrollPane;
 import javax.swing.JTabbedPane;
 import javax.swing.JTable;
 import javax.swing.border.EmptyBorder;
+import javax.swing.table.DefaultTableModel;
 
 class storeGUI extends JFrame implements Runnable {
 	/**
@@ -26,6 +27,7 @@ class storeGUI extends JFrame implements Runnable {
 	 */
 	private static final long serialVersionUID = 1L;
 	private JPanel contentPane;
+	private DefaultTableModel stockModel, transModel;
 	private JTable stockTable, transTable;
 	private JScrollPane stockScroll, transScroll;
 	private JPanel stockPanel, transPanel;
@@ -33,12 +35,19 @@ class storeGUI extends JFrame implements Runnable {
 	private String id;
 	private Store form;
 	private ResultSet rs;
+	private final String[] stockColumnNames = { "Product_ID", "Product_Name", "Quantity", "Maximum capacity",
+			"Maintaining minimum quantity" };
+	private final String[] transColumnNames = { "Warehouse name", "goods name", "amount of trasportation",
+			"cost of trasportation", "shipping(Y/N)" };
+	private Object[][] stockData, transData;
+	private int stockRows, transRows;
 
 	/**
 	 * Create the frame.
 	 * 
 	 * @throws SQLException
 	 */
+
 	public storeGUI(Store form, String id) throws SQLException {
 		this.form = form;
 		this.id = id;
@@ -66,26 +75,11 @@ class storeGUI extends JFrame implements Runnable {
 		stockPanel.setLayout(null);
 
 		rs = DataBaseConnect.execute("select count(*) from store_inventory where store_id='" + id + "'");
-
-		String[] stockColumnNames = { "Product_ID", "Product_Name", "Quantity", "Maximum capacity",
-				"Maintaining minimum quantity" };
 		if (rs.next()) {
-			Object[][] stockData = new Object[rs.getInt(1)][];
-
-			rs = DataBaseConnect.execute("select * from store_inventory where store_id='" + id + "'");
-			for (int i = 0; i < stockData.length; i++) {
-				if (rs.next()) {
-					String strProduct_Name = null;
-					ResultSet pdNameSet = DataBaseConnect
-							.execute("select * from product where product_id='" + rs.getString("product_id") + "'");
-					if(pdNameSet.next())
-						strProduct_Name = pdNameSet.getString("product_name");
-					Object[] tmpdata = { rs.getString("product_id"), strProduct_Name, rs.getInt("amount"),
-							rs.getInt("product_max"), rs.getInt("product_min") };
-					stockData[i] = tmpdata;
-				}
-			}
-			stockTable = new JTable(stockData, stockColumnNames) {
+			stockRows = rs.getInt(1);
+			stockData = getInventoryData(stockRows);
+			stockModel = new DefaultTableModel(stockData, stockColumnNames);
+			stockTable = new JTable(stockModel) {
 				private static final long serialVersionUID = 1L;
 
 				@Override
@@ -108,6 +102,7 @@ class storeGUI extends JFrame implements Runnable {
 			public void actionPerformed(ActionEvent arg0) {
 				new Add_popup("Edit Inventory", "Product ID", "Quantity") {
 					private static final long serialVersionUID = 1L;
+
 					@Override
 					public void makeCommand() {
 						String command = "E;";
@@ -136,6 +131,7 @@ class storeGUI extends JFrame implements Runnable {
 						command += this.textField.getText() + ";";
 						command += this.textField_1.getText() + ";";
 						form.getOut().println(command);
+						stockTable.repaint();
 					}
 				};
 			}
@@ -170,10 +166,9 @@ class storeGUI extends JFrame implements Runnable {
 
 		transPanel.setLayout(null);
 
-		String[] transColumnNames = { "Warehouse name", "goods name", "amount of trasportation",
-				"cost of trasportation", "shipping(Y/N)" };
 		Object[][] transData = { { "A Warehouse", "A", new Integer(50), new Integer(30000), new Boolean(false) } };
-		transTable = new JTable(transData, transColumnNames) {
+		transModel = new DefaultTableModel(transData, transColumnNames);
+		transTable = new JTable(transModel) {
 			/**
 			 * 
 			 */
@@ -208,7 +203,6 @@ class storeGUI extends JFrame implements Runnable {
 						command += this.textField.getText() + ";";
 						command += this.textField_1.getText() + ";";
 						form.getOut().println(command);
-						// make a Command String, but not send it yet.
 					}
 
 				};
@@ -228,6 +222,61 @@ class storeGUI extends JFrame implements Runnable {
 		while (true) {
 			timeLabel.setText("Current time : " + new Date().toString());
 		}
+	}
+
+	public Object[][] getInventoryData(int columns) throws SQLException {
+		Object[][] stockData = new Object[columns][];
+		rs = DataBaseConnect.execute("select * from store_inventory where store_id='" + id + "'");
+		for (int i = 0; i < stockData.length; i++) {
+			if (rs.next()) {
+				String strProduct_Name = null;
+				ResultSet pdNameSet = DataBaseConnect
+						.execute("select * from product where product_id='" + rs.getString("product_id") + "'");
+				if (pdNameSet.next())
+					strProduct_Name = pdNameSet.getString("product_name");
+				Object[] tmpdata = { rs.getString("product_id"), strProduct_Name, rs.getInt("amount"),
+						rs.getInt("product_max"), rs.getInt("product_min") };
+				stockData[i] = tmpdata;
+			}
+		}
+		return stockData;
+	}
+	
+	//getter and setter for field
+	public String[] getStockColumnNames() {
+		return stockColumnNames;
+	}
+
+	public String[] getTransColumnNames() {
+		return transColumnNames;
+	}
+
+	public Object[][] getStockData() {
+		return stockData;
+	}
+
+	public void setStockData(Object[][] stockData) {
+		this.stockData = stockData;
+	}
+
+	public void setTransData(Object[][] transData) {
+		this.transData = transData;
+	}
+
+	public Object[][] getTransData() {
+		return transData;
+	}
+	
+	public int getStockRows() {
+		return stockRows;
+	}
+
+	public DefaultTableModel getStockModel() {
+		return stockModel;
+	}
+
+	public DefaultTableModel getTransModel() {
+		return transModel;
 	}
 }
 
@@ -295,11 +344,14 @@ public class Store extends Thread { // 창고, 가게의 공통 상위클래스
 	private Socket socket; // 서버에 연결하기 위한 소켓
 	private BufferedReader in; // 서버와 통신하기위한 in 스트림
 	private PrintWriter out; // out 스트림
+	private storeGUI storeForm;
+	private warehouseGUI warehouseForm;
+	private int kind;
 	/* 필드 종료 */
 
 	/* Store 생성자 */
-	public Store(String id, String password, int kind) throws Exception { // Store
-																			// 생성자
+	public Store(String id, String password, int kind) throws Exception {
+		this.kind = kind;
 		this.id = id;
 		this.password = password;
 		socket = new Socket("localhost", 9001); // 소켓 설정(로컬호스트, 포트 9001)
@@ -307,11 +359,13 @@ public class Store extends Thread { // 창고, 가게의 공통 상위클래스
 		in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
 		out = new PrintWriter(socket.getOutputStream(), true);
 		if (kind == 2) {
-			Thread gui = new Thread(new storeGUI(this, id));
+			storeForm = new storeGUI(this, id);
+			Thread gui = new Thread(storeForm);
 			this.start();
 			gui.start();
 		} else {
-			Thread gui = new Thread(new warehouseGUI((Warehouse) this, id));
+			warehouseForm = new warehouseGUI((Warehouse) this, id);
+			Thread gui = new Thread(warehouseForm);
 			this.start();
 			gui.start();
 		}
@@ -328,6 +382,13 @@ public class Store extends Thread { // 창고, 가게의 공통 상위클래스
 			try {
 				command = in.readLine(); // 서버에서 커맨드 읽어옴
 				System.out.println(command);
+				if (command.startsWith("E") || command.startsWith("MX") || command.startsWith("MN"))
+					if (kind == 2){
+						storeForm.setStockData(storeForm.getInventoryData(storeForm.getStockRows()));
+						storeForm.getStockModel().setDataVector(storeForm.getStockData(), storeForm.getStockColumnNames());
+					}
+					else
+						warehouseForm.getStockModel().fireTableDataChanged();
 				if (command.startsWith("Verifying"))
 					out.println(this.id);
 				if (command.startsWith("Accepted")) {
@@ -336,6 +397,8 @@ public class Store extends Thread { // 창고, 가게의 공통 상위클래스
 				}
 
 			} catch (IOException e) {
+				e.printStackTrace();
+			} catch (SQLException e) {
 				e.printStackTrace();
 			}
 		}
