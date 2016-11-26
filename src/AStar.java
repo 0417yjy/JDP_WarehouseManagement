@@ -1,3 +1,10 @@
+/*
+ *filename : AStar.java
+ *author : team Tic Toc
+ *since : 2016.11.11
+ *purpose/function : 
+ *
+ */
 import java.util.ArrayList;
 
 public class AStar {

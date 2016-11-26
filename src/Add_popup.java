@@ -1,4 +1,12 @@
+/*
+ *filename : Add_popup.java
+ *author : team Tic Toc
+ *since : 2016.11.07
+ *purpose/function : 
+ *
+ */
 import java.awt.Font;
+  
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 

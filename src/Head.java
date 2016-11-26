@@ -1,3 +1,10 @@
+/*
+ *filename : Head.java
+ *author : team Tic Toc
+ *since : 2016.10.10
+ *purpose/function : Show Head GUI. GUI is composed of 
+ *
+ */
 import java.awt.Font;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
