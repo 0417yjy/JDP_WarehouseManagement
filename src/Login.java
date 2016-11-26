@@ -23,7 +23,7 @@ public class Login extends JFrame implements ActionListener {
 	 * 
 	 */
 	private static final long serialVersionUID = -7921901733199665301L;
-	// private class Account { // 계정 클래스
+	// private class Account { // 
 	// private String id;
 	// private String pw;
 	//
@@ -46,10 +46,10 @@ public class Login extends JFrame implements ActionListener {
 	private JPasswordField passwordField;
 	private JButton btnProceed;
 	private JLabel lblUserAuthorisationRequired;
-	// private boolean isFileExist; //파일이 존재하는지 여부
-	private String inputId; // 사용자가 입력한 id, pw
+	// private boolean isFileExist; //
+	private String inputId; // id and pw(user inserted)
 	private String inputPw;
-	private String tmpId; // 임시 id, pw 저장
+	private String tmpId; // temporarily save id and pw
 	private String tmpPw;
 	private BufferedReader in;
 	private ResultSet rs;
@@ -82,7 +82,7 @@ public class Login extends JFrame implements ActionListener {
 		DataBaseConnect.connect("1234");
 		DataBaseConnect.execute("use wms");
 
-		EventQueue.invokeLater(new Runnable() { // 로그인 프레임 생성
+		EventQueue.invokeLater(new Runnable() { // create login frame
 			public void run() {
 				try {
 					Login frame = new Login();
@@ -150,7 +150,7 @@ public class Login extends JFrame implements ActionListener {
 				tmpPw = rs.getString(2);
 				if (inputId.equals(tmpId) && inputPw.equals(tmpPw)) {
 					if (inputId.equals("admin")) {
-						// 헤드 GUI 생성 & 로그인 GUI 닫기
+						// create head GUI & close login GUI
 						this.dispose();
 						try {
 							new Head();
@@ -160,13 +160,13 @@ public class Login extends JFrame implements ActionListener {
 					} else if (inputId.equals("server")) {
 						this.dispose();
 						try {
-							new Server(); // 서버 호스트
+							new Server(); // server host
 						} catch (Exception e1) {
 							e1.printStackTrace();
 							System.out.println("Server has already been hosted or has error.");
 						}
 					} else if (!rs.getBoolean("isStore")) {
-						// 창고GUI 생성
+						// create warehouse GUI
 						try {
 							new Warehouse(inputId, inputPw, 1);
 						} catch (Exception e1) {
@@ -174,7 +174,7 @@ public class Login extends JFrame implements ActionListener {
 						}
 						this.dispose();
 					} else if (rs.getBoolean("isStore")) {
-						// 가게GUI 생성
+						// create store GUI
 						try {
 							new Store(inputId, inputPw, 2);
 						} catch (Exception e1) {

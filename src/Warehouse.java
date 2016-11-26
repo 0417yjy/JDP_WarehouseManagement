@@ -219,11 +219,11 @@ class warehouseGUI extends JFrame implements Runnable {
 		btnCancle.setBounds(164, 10, 114, 23);
 		transPanel.add(btnCancle);
 
-		// 운송관리 탭 패널
+		// transportation management tab panel
 		sendPanel = new JPanel();
 		tabbedPane.addTab("Transprotation Management", null, sendPanel, null);
 		sendPanel.setLayout(null);
-		Object[][] sendData = { { "A가게", "92.5", "45.0", "A", new Integer(50) } };
+		Object[][] sendData = { { "Store A", "92.5", "45.0", "A", new Integer(50) } };
 		sendModel = new DefaultTableModel(sendData, sendColumnNames);
 		sendTable = new JTable(sendModel) {
 			private static final long serialVersionUID = -970427320898634808L;
@@ -239,7 +239,7 @@ class warehouseGUI extends JFrame implements Runnable {
 		sendPanel.add(sendScroll);
 		btnReceived.setBounds(486, 294, 122, 23);
 
-		JButton btnSended = new JButton("Shipped");// 발생완료
+		JButton btnSended = new JButton("Shipped");// departure success
 		btnSended.setSize(114, 23);
 		btnSended.setLocation(494, 294);
 		btnCancle.setBounds(360, 294, 114, 23);
@@ -326,7 +326,7 @@ class warehouseGUI extends JFrame implements Runnable {
 	}
 
 	public DefaultTableModel getStockModel() {
-		return stockModel;
+		return stockModel;	
 	}
 
 	public DefaultTableModel getTransModel() {
@@ -375,12 +375,12 @@ class warehouseGUI extends JFrame implements Runnable {
 }
 
 public class Warehouse extends Store {
-	// 내부 운송 클래스
+	// inner transportation class
 	private class Transport {
-		private String storeName; // 가게명
-		private String stockName; // 재고명
-		private double x, y; // 목표지점 좌표
-		private int amount; // 운송량
+		private String storeName; // store name
+		private String stockName; // stock name
+		private double x, y; // target's coordinate
+		private int amount; // amount
 
 		public Transport(String storeName, String stockName, double x, double y, int amount) {
 			this.stockName = storeName;
@@ -393,7 +393,7 @@ public class Warehouse extends Store {
 	}
 
 	public Warehouse(String id, String password, int kind) throws Exception { // Warehouse
-																				// 생성자
+																
 		super(id, password, kind);
 	}
 

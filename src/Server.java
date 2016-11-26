@@ -151,7 +151,7 @@ public class Server {
 			} catch (SQLException e) {
 				e.printStackTrace();
 			} finally {
-				// �겢�씪�씠�뼵�듃媛� 醫낅즺�릱�쓣 �븣 �빐�떦 �겢�씪�씠�뼵�듃�쓽 PrintWriter 媛앹껜�� id �궘�젣
+				// 
 				if (id != null)
 					ids.remove(id);
 				if (out != null) {
