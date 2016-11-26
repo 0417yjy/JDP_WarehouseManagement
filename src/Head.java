@@ -199,7 +199,7 @@ public class Head extends Thread {
 		private String storeName;
 		private String stockName;
 		private int amount;
-		private boolean confirmed; // 주문 접수 여부
+		private boolean confirmed; // check order receiving
 		private String confirmTime; // Save time log at confirmed
 
 		public Request(String storeName, String stockName, int amount, boolean confirmed) {
@@ -218,10 +218,10 @@ public class Head extends Thread {
 									// list of warehouses.
 	private Object[][] stores; // array of array which is used to show the list
 								// of stores.
-	private ArrayList<Request> requests = new ArrayList<Request>(); // 주문 어레이리스트
-	private Socket socket; // 서버에 연결하기 위한 소켓
-	private BufferedReader in; // 서버와 통신하기위한 in 스트림
-	private PrintWriter out; // out 스트림
+	private ArrayList<Request> requests = new ArrayList<Request>(); // order Arraylist
+	private Socket socket; // socket for connecting server
+	private BufferedReader in; // in stream for communicate with server
+	private PrintWriter out; // out stream
 	private BufferedReader fin; // File input stream
 	/* End of field */
 
@@ -240,10 +240,10 @@ public class Head extends Thread {
 		r.confirmed = true;
 	}
 
-	/* 헤드 생성자 */
+	/* head constructor */
 	public Head() throws Exception {
-		socket = new Socket("localhost", 9001); // 소켓 설정(로컬호스트, 포트 9001)
-		// 설정한 소켓에서 스트림 생성
+		socket = new Socket("localhost", 9001); // setting socket(localhost, port 9001)
+		// create stream at set socket
 		in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
 		out = new PrintWriter(socket.getOutputStream(), true);
 		// fin = new BufferedReader(new FileReader("data/admin.txt"));
@@ -271,18 +271,18 @@ public class Head extends Thread {
 		gui.start();
 	}
 
-	// 헤드 스레드 작업
+	// head thread work
 	@Override
 	public void run() {
 		String command;
 		while (true) {
 			try {
-				command = in.readLine(); // 서버에서 커맨드 읽어옴
+				command = in.readLine(); // read command from server
 				System.out.println(command);
 				if (command.startsWith("Verifying"))
 					out.println(this.id);
 				if (command.startsWith("Accepted")) {
-					// 로그인 성공 메시지 팝업
+					// popup of login success
 					JOptionPane.showMessageDialog(frame, "You are connected to server.");
 				}
 			} catch (IOException e) {

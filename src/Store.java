@@ -280,50 +280,50 @@ class storeGUI extends JFrame implements Runnable {
 	}
 }
 
-public class Store extends Thread { // 창고, 가게의 공통 상위클래스
-	// 내부 재고 클래스
+public class Store extends Thread { // super class for warehouse and store
+	// class for stock
 	private class Stock {
 		private String name;
-		private int remain; // 재고량
-		private int max; // 최대 수용가능량
-		private int min; // 최소 유지재고량
-		/* 필드 종료 */
+		private int remain; // stock(remain)
+		private int max; // max capacity
+		private int min; // min quantity
+		/* field ends */
 
-		public Stock(String name, int remain, int max, int min) { // Stock 생성자
+		public Stock(String name, int remain, int max, int min) { // Stock constructor
 			this.name = name;
 			this.remain = remain;
 			this.max = max;
 			this.min = min;
 		}
 
-		public void setRemain(int remain) { // 재고량 수정
+		public void setRemain(int remain) { // edit stock
 			this.remain = remain;
 		}
 
-		public void setMax(int max) { // 최대 수량 수정
+		public void setMax(int max) { // edit max capacity
 			this.max = max;
 		}
 
-		public void setMin(int min) { // 최소 수량 수정
+		public void setMin(int min) { // edit min quantity
 			this.min = min;
 		}
 	}
 
-	// 내부 주문 클래스
+	// inner order class
 	private class Order {
-		private String warehouseName; // 창고 이름
-		private String name; // 물품 이름
-		private int quantity; // 운송량
-		private int cost; // 운송비
-		private boolean isSent; // 발송여부
-		// private boolean isReceived; //수령여부
+		private String warehouseName; // warehouse name
+		private String name; // product name
+		private int quantity; // quantity
+		private int cost; // cost
+		private boolean isSent; //state of sending
+		// private boolean isReceived;
 
-		public void setSent(boolean isSent) { // 발송여부 수정
+		public void setSent(boolean isSent) { // edit state of sending
 			this.isSent = isSent;
 		}
 
 		public Order(String warename, String name, int quantity, int cost, boolean issent) { // Order
-																								// 생성자
+																								
 			this.warehouseName = warename;
 			this.name = name;
 			this.quantity = quantity;
@@ -333,29 +333,29 @@ public class Store extends Thread { // 창고, 가게의 공통 상위클래스
 		}
 	}
 
-	/* 필드 시작 */
-	private double x, y; // 좌표
-	private String id; // 고유 넘버
+	/* field starts */
+	private double x, y; // coordinate
+	private String id; // inherent number
 	private String password;
 	private String name;
 	private storeGUI frame;
-	private ArrayList<Stock> stocks = new ArrayList<Stock>(); // 재고 어레이리스트
-	private ArrayList<Order> orders = new ArrayList<Order>(); // 주문 어레이리스트
-	private Socket socket; // 서버에 연결하기 위한 소켓
-	private BufferedReader in; // 서버와 통신하기위한 in 스트림
-	private PrintWriter out; // out 스트림
+	private ArrayList<Stock> stocks = new ArrayList<Stock>(); // stock ArrayList
+	private ArrayList<Order> orders = new ArrayList<Order>(); // order ArrayList
+	private Socket socket; // socket for connecting server
+	private BufferedReader in; // in stream for communicating with server
+	private PrintWriter out; // out stream
 	private storeGUI storeForm;
 	private warehouseGUI warehouseForm;
 	private int kind;
-	/* 필드 종료 */
+	/* field ends */
 
-	/* Store 생성자 */
+	/* Store constructor */
 	public Store(String id, String password, int kind) throws Exception {
 		this.kind = kind;
 		this.id = id;
 		this.password = password;
-		socket = new Socket("localhost", 9001); // 소켓 설정(로컬호스트, 포트 9001)
-		// 설정한 소켓에서 스트림 생성
+		socket = new Socket("localhost", 9001); // set socket(localhost, port 9001)
+		// create stream at set socket
 		in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
 		out = new PrintWriter(socket.getOutputStream(), true);
 		if (kind == 2) {
@@ -380,7 +380,7 @@ public class Store extends Thread { // 창고, 가게의 공통 상위클래스
 		String command;
 		while (true) {
 			try {
-				command = in.readLine(); // 서버에서 커맨드 읽어옴
+				command = in.readLine(); // ream command from server
 				System.out.println(command);
 				if (command.startsWith("E") || command.startsWith("MX") || command.startsWith("MN"))
 					if (kind == 2){
@@ -394,7 +394,7 @@ public class Store extends Thread { // 창고, 가게의 공통 상위클래스
 				if (command.startsWith("Verifying"))
 					out.println(this.id);
 				if (command.startsWith("Accepted")) {
-					// 로그인 성공 메시지 팝업
+					// popup for login success
 					JOptionPane.showMessageDialog(frame, "You are connected to server.");
 				}
 
