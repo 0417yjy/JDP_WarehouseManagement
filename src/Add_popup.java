@@ -2,7 +2,7 @@
  *filename : Add_popup.java
  *author : team Tic Toc
  *since : 2016.11.07
- *purpose/function : 
+ *purpose/function : Popup window when pressing button.
  *
  */
 import java.awt.Font;

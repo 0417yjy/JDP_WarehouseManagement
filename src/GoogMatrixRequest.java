@@ -2,7 +2,7 @@
  *filename : GoogMatrixRequest.java
  *author : team Tic Toc
  *since : 2016.11.11
- *purpose/function : 
+ *purpose/function : Use Google map API to find routes and distance.
  *
  */
 import com.squareup.okhttp.OkHttpClient;

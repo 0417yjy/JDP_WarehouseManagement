@@ -2,7 +2,7 @@
  *filename : AStar.java
  *author : team Tic Toc
  *since : 2016.11.11
- *purpose/function : 
+ *purpose/function : Use AStar algorithm to find closest target, satisfying concerned options.
  *
  */
 import java.util.ArrayList;
