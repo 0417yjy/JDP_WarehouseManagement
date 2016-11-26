@@ -124,7 +124,11 @@ public class Server {
 							out.println(input+"has completed");
 							break;
 							
-						case "O": // edit new order
+						case "O": // make new order
+							int orderNo = 1;
+							rs = DataBaseConnect.execute("select order_no from ordering");
+							while(rs.next())
+								orderNo=rs.getInt(1);
 							
 							break;
 							

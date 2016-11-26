@@ -14,6 +14,8 @@ import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseMotionListener;
 import java.io.File;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.text.Format;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -60,6 +62,7 @@ public class LineGraph extends Panel implements ActionListener, MouseMotionListe
 	private ArrayList<ArrayList<Integer>> values; // ArrayList of values
 	private ArrayList<ArrayList<Date>> dates; // ArrayList of dates
 	private ArrayList<ArrayList<Point>> graphPoints; // ArrayList of each point
+	private ResultSet rs;
 	private Font font = new Font("Serif", Font.BOLD, 20);
 	private int pointIndex, arrayIndex;
 	private JButton exportToXLS;
@@ -70,10 +73,39 @@ public class LineGraph extends Panel implements ActionListener, MouseMotionListe
 	private String address = "[address]";
 	private double latitude, longitude;
 	private double totalValue;
+	private boolean isStore;
 
-	public LineGraph(ArrayList<ArrayList<Integer>> values, ArrayList<ArrayList<Date>> dates) {
-		this.values = values;
-		this.dates = dates;
+	public LineGraph(String id) throws SQLException {
+		this.id = id;
+		rs = DataBaseConnect.execute("select * from identification where Id='" + id + "'");
+		//get this id is store or warehouse
+		if (rs.next())
+			isStore = rs.getBoolean("isStore");
+
+		if (isStore) {
+			rs = DataBaseConnect.execute("select * from store where store_id='" + id + "'");
+			//get information of this store
+			if (rs.next()) {
+				this.latitude = rs.getDouble("latitude");
+				this.longitude = rs.getDouble("longitude");
+				this.cash = rs.getDouble("cash");
+				this.address = rs.getString("address");
+			}
+			values = new ArrayList<ArrayList<Integer>>();
+			dates = new ArrayList<ArrayList<Date>>();
+			rs = DataBaseConnect.execute("select * from store_inventory where store_id='2001'");
+			while(rs.next()) {
+				
+			}
+		} else {
+			rs = DataBaseConnect.execute("select * from warehouse where warehouse_id='" + id + "'");
+			if (rs.next()) {
+				this.latitude = rs.getDouble("latitude");
+				this.longitude = rs.getDouble("longitude");
+				this.address = rs.getString("address");
+			}
+		}
+
 		// create a frame
 		JFrame frame = new JFrame("Chart");
 		frame.getContentPane().add(this);
@@ -89,11 +121,13 @@ public class LineGraph extends Panel implements ActionListener, MouseMotionListe
 		this.add(idLabel);
 		this.addMouseMotionListener(this);
 
-		JLabel currentCashLabel = new JLabel("Current Cash : " + cash);
-		currentCashLabel.setFont(font);
-		currentCashLabel.setBounds(padding, padding + labelPadding, getWidth(), labelPadding);
-		this.add(currentCashLabel);
-
+		if (isStore) {
+			JLabel currentCashLabel = new JLabel("Current Cash : " + cash);
+			currentCashLabel.setFont(font);
+			currentCashLabel.setBounds(padding, padding + labelPadding, getWidth(), labelPadding);
+			this.add(currentCashLabel);
+		}
+		
 		JLabel addressLabel = new JLabel("Address : " + address);
 		addressLabel.setFont(font);
 		addressLabel.setBounds(padding, padding + labelPadding * 2, getWidth(), labelPadding);
@@ -337,12 +371,13 @@ public class LineGraph extends Panel implements ActionListener, MouseMotionListe
 
 		WritableFont titleFont = new WritableFont(WritableFont.ARIAL, 16);
 		WritableFont infoFont = new WritableFont(WritableFont.ARIAL, 12);
-		WritableFont tableFont = new WritableFont(WritableFont.ARIAL, 10, WritableFont.NO_BOLD, false, UnderlineStyle.NO_UNDERLINE, Colour.WHITE);
+		WritableFont tableFont = new WritableFont(WritableFont.ARIAL, 10, WritableFont.NO_BOLD, false,
+				UnderlineStyle.NO_UNDERLINE, Colour.WHITE);
 		WritableCellFormat titleFormat = new WritableCellFormat(titleFont);
 		WritableCellFormat infoTitle = new WritableCellFormat(infoFont);
 		WritableCellFormat infoData = new WritableCellFormat(infoFont);
 		WritableCellFormat tableColumn = new WritableCellFormat(tableFont);
-		
+
 		try {
 			// generate file
 			workbook = Workbook.createWorkbook(file);
@@ -351,15 +386,14 @@ public class LineGraph extends Panel implements ActionListener, MouseMotionListe
 			workbook.createSheet("Sheet", 0);
 			sheet = workbook.getSheet(0);
 			sheet.mergeCells(0, 0, 8, 0);
-			
-			
+
 			sheet.setColumnView(0, 20);
 			sheet.setColumnView(1, 25);
-			for(int i=3;i<=8;i++)
+			for (int i = 3; i <= 8; i++)
 				sheet.setColumnView(i, 13);
 			sheet.setColumnView(5, 20);
 
-			//set format
+			// set format
 			titleFormat.setAlignment(Alignment.CENTRE);
 			titleFormat.setBorder(Border.ALL, BorderLineStyle.THICK);
 			infoTitle.setShrinkToFit(true);
@@ -369,13 +403,13 @@ public class LineGraph extends Panel implements ActionListener, MouseMotionListe
 			infoData.setBorder(Border.ALL, BorderLineStyle.THIN);
 			infoData.setBackground(Colour.IVORY);
 			tableColumn.setAlignment(Alignment.CENTRE);
-			tableColumn.setBorder(Border.ALL,  BorderLineStyle.THIN);
+			tableColumn.setBorder(Border.ALL, BorderLineStyle.THIN);
 			tableColumn.setBackground(Colour.SEA_GREEN);
-			
+
 			// Write into cell - Info about this
 			label = new Label(0, 0, "Detail", titleFormat);
 			sheet.addCell(label);
-			
+
 			label = new Label(0, 1, "ID", infoTitle);
 			sheet.addCell(label);
 
@@ -405,37 +439,39 @@ public class LineGraph extends Panel implements ActionListener, MouseMotionListe
 
 			numLabel = new Number(1, 5, longitude, infoData);
 			sheet.addCell(numLabel);
-			
+
 			label = new Label(0, 7, "Total Inventory Value", infoTitle);
 			sheet.addCell(label);
-			
+
 			numLabel = new Number(1, 7, totalValue, infoData);
 			sheet.addCell(numLabel);
-			
+
 			label = new Label(0, 8, "Inventory Items", infoTitle);
 			sheet.addCell(label);
-			
+
 			numLabel = new Number(1, 8, values.size(), infoData);
 			sheet.addCell(numLabel);
-			
-			//Write into cell - make data table columns
+
+			// Write into cell - make data table columns
 			label = new Label(3, 1, "Product_ID", tableColumn);
 			sheet.addCell(label);
-			
+
 			label = new Label(4, 1, "Product_Name", tableColumn);
 			sheet.addCell(label);
-			
+
 			label = new Label(5, 1, "Description", tableColumn);
 			sheet.addCell(label);
-			
+
 			label = new Label(6, 1, "Unit_Price", tableColumn);
 			sheet.addCell(label);
-			
+
 			label = new Label(7, 1, "Quantity", tableColumn);
 			sheet.addCell(label);
-			
+
 			label = new Label(8, 1, "Value", tableColumn);
 			sheet.addCell(label);
+
+			ResultSet rs = DataBaseConnect.execute("select * from product");
 
 			workbook.write();
 			workbook.close();
