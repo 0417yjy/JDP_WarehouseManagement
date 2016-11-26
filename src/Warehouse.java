@@ -264,7 +264,7 @@ class warehouseGUI extends JFrame implements Runnable {
 	}
 
 	public DefaultTableModel getStockModel() {
-		return stockModel;
+		return stockModel;	
 	}
 
 	public DefaultTableModel getTransModel() {
