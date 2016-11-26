@@ -187,7 +187,7 @@ public class Server {
 		}
 
 		private void calculate(String order_no) {
-
+			
 		}
 	}
 }

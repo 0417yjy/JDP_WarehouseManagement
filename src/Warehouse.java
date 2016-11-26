@@ -29,21 +29,19 @@ class warehouseGUI extends JFrame implements Runnable {
 	 */
 	private static final long serialVersionUID = 8574013422604253111L;
 	private JPanel contentPane;
-	private DefaultTableModel stockModel, transModel, sendModel, orderModel;
-	private JTable stockTable, transTable, sendTable, orderTable;
-	private JScrollPane stockScroll, transScroll, sendScroll, orderScroll;
-	private JPanel stockPanel, transPanel, sendPanel;
+	private DefaultTableModel stockModel, sendModel;
+	private JTable stockTable, sendTable;
+	private JScrollPane stockScroll, sendScroll;
+	private JPanel stockPanel, sendPanel;
 	private JLabel timeLabel;
 	private String id;
 	private Warehouse form;
 	private ResultSet rs;
 	private final String[] stockColumnNames = { "Product_ID", "Product_Name", "Quantity", "Maximum capacity",
 			"Maintaining minimum quantity" };
-	private final String[] transColumnNames = { "Order_No", "Product_ID", "Product_Name", "Amount" };
-	private final String[] orderColumnNames = { "Departure_ID", "Product_ID", "Product_Name", "Amount", "Cost" };
 	private final String[] sendColumnNames = { "store name", "x", "y", "name of goods", "amount of transportation" };
-	private Object[][] stockData, transData, sendData, orderData;
-	private int stockRows, transRows, sendRows, orderRows;
+	private Object[][] stockData, sendData;
+	private int stockRows, sendRows;
 
 	/**
 	 * Create the frame.
@@ -163,99 +161,6 @@ class warehouseGUI extends JFrame implements Runnable {
 		});
 		stockPanel.add(btnModifyMin);
 
-		// order management tab panel
-		transPanel = new JPanel();
-		tabbedPane.addTab("Order Management", null, transPanel, null);
-		transPanel.setLayout(null);
-
-		// table of orders
-		transData = getOrderingData();
-		transModel = new DefaultTableModel(transData, transColumnNames);
-		transTable = new JTable(transModel) {
-
-			private static final long serialVersionUID = 1L;
-
-			@Override
-			public boolean isCellEditable(int row, int column) {
-				return false;
-			}
-		};
-
-		transScroll = new JScrollPane(transTable);
-		transScroll.setBounds(12, 46, 696, 119);
-		transPanel.add(transScroll);
-
-		// table of shippings inform
-		orderData = getShippingData();
-		orderModel = new DefaultTableModel(orderData, orderColumnNames);
-		orderTable = new JTable(orderModel) {
-			private static final long serialVersionUID = 1L;
-
-			@Override
-			public boolean isCellEditable(int row, int column) {
-				return false;
-			}
-		};
-
-		orderScroll = new JScrollPane(orderTable);
-		orderScroll.setBounds(12, 170, 696, 119);
-		transPanel.add(orderScroll);
-
-		JButton btnReceived = new JButton("Received");
-		btnReceived.setBounds(486, 294, 122, 23);
-		transPanel.add(btnReceived);
-
-		JButton btnNew = new JButton("New Order");
-		btnNew.setBounds(12, 10, 140, 23);
-		btnNew.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent arg0) {
-				try {
-					new NewOrder(id, false) {
-						private static final long serialVersionUID = 1L;
-
-						@Override
-						void makeCommand() {
-							String command = "O;";
-							command += id + ";";
-							command += this.getCommandData().size() + ";";
-							for (int i = 0; i < this.getCommandData().size(); i++) {
-								command += this.getCommandData().get(i)[0] + ";";
-								command += this.getCommandData().get(i)[1] + ";";
-							}
-							form.getOut().println(command);
-						}
-					};
-				} catch (SQLException e) {
-					e.printStackTrace();
-				}
-			}
-		});
-		transPanel.add(btnNew);
-		
-		JButton btnDetail = new JButton("Show Detail");
-		btnDetail.setBounds(494, 10, 114, 23);
-		btnDetail.addActionListener(new ActionListener() {
-
-			@Override
-			public void actionPerformed(ActionEvent arg0) {
-				int selectedRow = transTable.getSelectedRow();
-				String orderNO = (String) transTable.getValueAt(selectedRow, 0);
-				try {
-					new OrderDetail(orderNO);
-				} catch (SQLException e) {
-					e.printStackTrace();
-				}
-			}
-			
-		});
-		transPanel.add(btnDetail);
-
-		// SHOULD ADD EVENT HANDLER!!
-		JButton btnCancle = new JButton("Cancel Order");
-		btnCancle.setBounds(164, 10, 114, 23);
-		transPanel.add(btnCancle);
-
 		// transportation management tab panel
 		sendPanel = new JPanel();
 		tabbedPane.addTab("Transprotation Management", null, sendPanel, null);
@@ -274,12 +179,10 @@ class warehouseGUI extends JFrame implements Runnable {
 		sendScroll = new JScrollPane(sendTable);
 		sendScroll.setBounds(12, 10, 696, 274);
 		sendPanel.add(sendScroll);
-		btnReceived.setBounds(486, 294, 122, 23);
 
 		JButton btnSended = new JButton("Shipped");// departure success
 		btnSended.setSize(114, 23);
 		btnSended.setLocation(494, 294);
-		btnCancle.setBounds(360, 294, 114, 23);
 		sendPanel.add(btnSended);
 	}
 
@@ -366,10 +269,6 @@ class warehouseGUI extends JFrame implements Runnable {
 		return stockModel;
 	}
 
-	public DefaultTableModel getTransModel() {
-		return transModel;
-	}
-
 	public DefaultTableModel getSendModel() {
 		return sendModel;
 	}
@@ -382,20 +281,8 @@ class warehouseGUI extends JFrame implements Runnable {
 		this.stockData = stockData;
 	}
 
-	public Object[][] getTransData() {
-		return transData;
-	}
-
-	public void setTransData(Object[][] transData) {
-		this.transData = transData;
-	}
-
 	public String[] getStockColumnNames() {
 		return stockColumnNames;
-	}
-
-	public String[] getTransColumnNames() {
-		return transColumnNames;
 	}
 
 	public String[] getSendColumnNames() {
@@ -404,10 +291,6 @@ class warehouseGUI extends JFrame implements Runnable {
 
 	public int getStockRows() {
 		return stockRows;
-	}
-
-	public int getTransRows() {
-		return transRows;
 	}
 }
 

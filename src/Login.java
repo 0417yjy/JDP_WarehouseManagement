@@ -30,23 +30,6 @@ public class Login extends JFrame implements ActionListener {
 	 * 
 	 */
 	private static final long serialVersionUID = -7921901733199665301L;
-	// private class Account { // 
-	// private String id;
-	// private String pw;
-	//
-	// public Account(String id, String pw) {
-	// this.id = id;
-	// this.pw = pw;
-	// }
-	//
-	// public String getId() {
-	// return id;
-	// }
-	//
-	// public String getPw() {
-	// return pw;
-	// }
-	// }
 
 	private JPanel contentPane;
 	private JTextField idField;
@@ -88,7 +71,26 @@ public class Login extends JFrame implements ActionListener {
 		// new LineGraph(tmpintarr, tmpdate);
 		DataBaseConnect.connect("1234");
 		DataBaseConnect.execute("use wms");
-
+		
+		//insert distance;
+//		try {
+//			Head.calculateNewStore("2001");
+//			Head.calculateNewStore("2002");
+//			Head.calculateNewStore("2003");
+//			Head.calculateNewStore("2004");
+//			Head.calculateNewStore("2005");
+//			Head.calculateNewStore("2006");
+//			Head.calculateNewStore("2007");
+//			Head.calculateNewStore("2008");
+//			Head.calculateNewStore("2009");
+//			Head.calculateNewStore("2010");
+//			Head.calculateNewStore("2011");
+//			Head.calculateNewStore("2012");
+//		} catch (IOException e1) {
+//			// TODO Auto-generated catch block
+//			e1.printStackTrace();
+//		}
+		
 		EventQueue.invokeLater(new Runnable() { // create login frame
 			public void run() {
 				try {

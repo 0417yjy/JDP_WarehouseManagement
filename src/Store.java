@@ -236,7 +236,7 @@ class storeGUI extends JFrame implements Runnable {
 			}
 		});
 		transPanel.add(btnNew);
-		
+
 		JButton btnDetail = new JButton("Show Detail");
 		btnDetail.setBounds(494, 10, 114, 23);
 		btnDetail.addActionListener(new ActionListener() {
@@ -251,7 +251,7 @@ class storeGUI extends JFrame implements Runnable {
 					e.printStackTrace();
 				}
 			}
-			
+
 		});
 		transPanel.add(btnDetail);
 
@@ -262,12 +262,12 @@ class storeGUI extends JFrame implements Runnable {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				int rows[] = transTable.getSelectedRows();
-				for(int i=0;i<rows.length;i++){
+				for (int i = 0; i < rows.length; i++) {
 					String orderNO = (String) transTable.getValueAt(rows[i], 0);
-					form.getOut().println("CO;"+orderNO+";");
+					form.getOut().println("CO;" + orderNO + ";");
 				}
 			}
-			
+
 		});
 		transPanel.add(btnCancle);
 	}
@@ -311,12 +311,12 @@ class storeGUI extends JFrame implements Runnable {
 		for (int i = 0; i < orderIDs.size(); i++) {
 			if (rs.next()) {
 				int products = 0;
-				ResultSet tmpRS = DataBaseConnect.execute("select count(*) from ordering_list where order_no="+orderIDs.get(i));
-				if(tmpRS.next())
+				ResultSet tmpRS = DataBaseConnect
+						.execute("select count(*) from ordering_list where order_no=" + orderIDs.get(i));
+				if (tmpRS.next())
 					products = tmpRS.getInt(1);
 				// make row data {Order_number, Order_products, Order_Date}
-				Object[] tmpdata = { orderIDs.get(i), products,
-						rs.getDate("order_date") };
+				Object[] tmpdata = { orderIDs.get(i), products, rs.getDate("order_date") };
 				orderData[i] = tmpdata; // add to data set
 			}
 		}
@@ -501,15 +501,8 @@ public class Store extends Thread { // super class for warehouse and store
 								warehouseForm.getStockColumnNames());
 					}
 				else if (command.startsWith("O") || command.startsWith("CO")) {
-					if (kind == 2) {
-						storeForm.setTransData(storeForm.getOrderingData());
-						storeForm.getTransModel().setDataVector(storeForm.getTransData(),
-								storeForm.getTransColumnNames());
-					} else {
-						warehouseForm.setTransData(warehouseForm.getOrderingData());
-						warehouseForm.getTransModel().setDataVector(warehouseForm.getTransData(),
-								warehouseForm.getTransColumnNames());
-					}
+					storeForm.setTransData(storeForm.getOrderingData());
+					storeForm.getTransModel().setDataVector(storeForm.getTransData(), storeForm.getTransColumnNames());
 				} else if (command.startsWith("Verifying"))
 					out.println(this.id);
 				else if (command.startsWith("Accepted")) {

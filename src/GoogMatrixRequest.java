@@ -45,7 +45,7 @@ public class GoogMatrixRequest {
 		return response.body().string();
 	}
 
-	public void calculate() throws IOException {
+	public String calculate() throws IOException {
 		GoogMatrixRequest request = this;
 		String url_request = null;
 		if (mode == 1)
@@ -56,6 +56,6 @@ public class GoogMatrixRequest {
 					+ startLongitude + "&destinations=" + targetLatitude + "," + targetLongitude + "&key=" + API_KEY;
 
 		String response = request.run(url_request);
-		System.out.println(response);
+		return response;
 	}
 }

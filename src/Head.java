@@ -1,3 +1,4 @@
+
 /*
  *filename : Head.java
  *author : team Tic Toc
@@ -127,6 +128,7 @@ class warehouseheadGUI extends JFrame implements Runnable {
 			}
 			tableStore = new JTable(data_store, columnNames_store) {
 				private static final long serialVersionUID = 1L;
+
 				@Override
 				public boolean isCellEditable(int row, int column) {
 					return false;
@@ -178,7 +180,7 @@ class warehouseheadGUI extends JFrame implements Runnable {
 		contentPane.add(btnAllProcess);
 		// end of making request table
 	}
-	
+
 	public Object[][] getRequestingData() throws SQLException {
 		rs = DataBaseConnect.execute("select count(*) from ordering");
 		Object[][] requestData = null;
@@ -189,7 +191,7 @@ class warehouseheadGUI extends JFrame implements Runnable {
 			for (int i = 0; i < rows; i++) {
 				if (rs.next()) {
 					// make row data
-					Object[] tmpdata = { rs.getString("order_no") , rs.getString("store_id"), rs.getDate("order_date")};
+					Object[] tmpdata = { rs.getString("order_no"), rs.getString("store_id"), rs.getDate("order_date") };
 					requestData[i] = tmpdata;
 				}
 			}
@@ -231,7 +233,8 @@ public class Head extends Thread {
 									// list of warehouses.
 	private Object[][] stores; // array of array which is used to show the list
 								// of stores.
-	private ArrayList<Request> requests = new ArrayList<Request>(); // order Arraylist
+	private ArrayList<Request> requests = new ArrayList<Request>(); // order
+																	// Arraylist
 	private Socket socket; // socket for connecting server
 	private BufferedReader in; // in stream for communicate with server
 	private PrintWriter out; // out stream
@@ -240,13 +243,114 @@ public class Head extends Thread {
 
 	/* head constructor */
 	public Head() throws Exception {
-		socket = new Socket("localhost", 9001); // setting socket(localhost, port 9001)
+		socket = new Socket("localhost", 9001); // setting socket(localhost,
+												// port 9001)
 		// create stream at set socket
 		in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
 		out = new PrintWriter(socket.getOutputStream(), true);
 		Thread gui = new Thread(new warehouseheadGUI());
 		this.start();
 		gui.start();
+	}
+
+	public static void calculateNewStore(String storeID) throws IOException, SQLException {
+		ResultSet rs;
+		double storeLa = 0, storeLo = 0, wareLa, wareLo;
+		String[] queries;
+		int warehouses = 0;
+		rs = DataBaseConnect.execute("select count(*) from warehouse");
+		if (rs.next())
+			warehouses = rs.getInt(1);
+
+		rs = DataBaseConnect.execute("select * from store where store_id=" + storeID);
+		if (rs.next()) {
+			storeLa = rs.getDouble("latitude");
+			storeLo = rs.getDouble("longitude");
+		}
+
+		rs = DataBaseConnect.execute("select * from warehouse");
+		queries = new String[warehouses];
+		for (int i = 0; i < warehouses; i++) {
+			try {
+				if (rs.next()) {
+					wareLa = rs.getDouble("latitude");
+					wareLo = rs.getDouble("longitude");
+					String warehouseID = rs.getString("warehouse_id");
+					String resultStr = new GoogMatrixRequest(wareLa, wareLo, storeLa, storeLo).calculate();
+					String[] results = resultStr.split("\n|:|\\{|\\}");
+					double distance = 0;
+					if (results[20].contains("km")) {
+						String[] tmp = results[20].split(" ");
+						distance = Double.parseDouble(tmp[0].substring(1)) * 1000;
+					} else
+						distance = Double.parseDouble(results[20]);
+					queries[i] = "insert into distance values ('" + storeID + "','" + warehouseID + "','" + distance
+							+ "')";
+				}
+			} catch (NumberFormatException e) {
+				queries[i] = null;
+				e.printStackTrace();
+			} catch (StringIndexOutOfBoundsException e) {
+				queries[i] = null;
+				e.printStackTrace();
+			} catch (SQLException e) {
+				e.printStackTrace();
+			}
+		}
+
+		for (int i = 0; i < warehouses; i++)
+			if (queries[i] != null)
+				DataBaseConnect.update(queries[i]);
+	}
+	
+	public static void calculateNewWarehouse(String warehouseID) throws IOException, SQLException {
+		ResultSet rs;
+		double storeLa = 0, storeLo = 0, wareLa = 0, wareLo = 0;
+		String[] queries;
+		int stores = 0;
+		rs = DataBaseConnect.execute("select count(*) from store");
+		if (rs.next())
+			stores = rs.getInt(1);
+
+		rs = DataBaseConnect.execute("select * from warehouse where warehouse_id=" + warehouseID);
+		if (rs.next()) {
+			wareLa = rs.getDouble("latitude");
+			wareLo = rs.getDouble("longitude");
+		}
+
+		rs = DataBaseConnect.execute("select * from warehouse");
+		queries = new String[stores];
+		for (int i = 0; i < stores; i++) {
+			try {
+				if (rs.next()) {
+					storeLa = rs.getDouble("latitude");
+					storeLo = rs.getDouble("longitude");
+					String storeID = rs.getString("warehouse_id");
+					String resultStr = new GoogMatrixRequest(wareLa, wareLo, storeLa, storeLo).calculate();
+					String[] results = resultStr.split("\n|:|\\{|\\}");
+					double distance = 0;
+					if (results[20].contains("km")) {
+						String[] tmp = results[20].split(" ");
+						distance = Double.parseDouble(tmp[0].substring(1)) * 1000;
+					} else
+						distance = Double.parseDouble(results[20]);
+					queries[i] = "insert into distance values ('" + storeID + "','" + warehouseID + "','" + distance
+							+ "')";
+				}
+			} catch (NumberFormatException e) {
+				queries[i] = null;
+				e.printStackTrace();
+			} catch (StringIndexOutOfBoundsException e) {
+				queries[i] = null;
+				e.printStackTrace();
+			} catch (SQLException e) {
+				e.printStackTrace();
+			}
+		}
+
+		for (int i = 0; i < stores; i++)
+			if (queries[i] != null)
+				DataBaseConnect.update(queries[i]);
 	}
 
 	// head thread work
