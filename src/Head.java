@@ -9,7 +9,6 @@ import java.awt.Font;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.BufferedReader;
-import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
@@ -27,17 +26,21 @@ import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.border.EmptyBorder;
+import javax.swing.table.DefaultTableModel;
 
-class warehouseheadGUI extends JFrame implements Runnable, ActionListener {
+class warehouseheadGUI extends JFrame implements Runnable {
 	private static final long serialVersionUID = 1L;
 	private JPanel contentPane;
 	private JTable tableWarehouse;
 	private JTable tableStore;
 	private JTable tableRequest;
+	private DefaultTableModel requestModel;
 	public JLabel lbTime;
 	private JButton btnWarehouseDetail, btnStoreDetail;
 	private JButton btnEachProcess, btnAllProcess;
 	private ResultSet rs;
+	private final String[] columnNames_request = { "Order_no", "Store_ID", "Ordering_Date" };
+	private Object[][] requestData;
 
 	public warehouseheadGUI() throws SQLException {
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -158,23 +161,40 @@ class warehouseheadGUI extends JFrame implements Runnable, ActionListener {
 		lblRequest.setBounds(12, 222, 54, 17);
 		contentPane.add(lblRequest);
 
-		String[] columnNames_request = { "Store", "article", "amount", "accept" };
-		Object[][] data_request = { { "A", "A", new Integer(150), "Pending" },
-				{ "B", new Integer(70), new Integer(200), "Confirmed" } };
-		tableRequest = new JTable(data_request, columnNames_request);
+		requestData = getRequestingData();
+		requestModel = new DefaultTableModel(requestData, columnNames_request);
+		tableRequest = new JTable(requestModel);
 
 		JScrollPane scrollRequest = new JScrollPane(tableRequest);
 		scrollRequest.setBounds(12, 249, 756, 155);
 		contentPane.add(scrollRequest);
 
-		btnEachProcess = new JButton("Individual treatment");
+		btnEachProcess = new JButton("Process Selected");
 		btnEachProcess.setBounds(615, 407, 150, 23);
 		contentPane.add(btnEachProcess);
 
-		btnAllProcess = new JButton("Batch processing");
+		btnAllProcess = new JButton("Process All");
 		btnAllProcess.setBounds(440, 407, 150, 23);
 		contentPane.add(btnAllProcess);
 		// end of making request table
+	}
+	
+	public Object[][] getRequestingData() throws SQLException {
+		rs = DataBaseConnect.execute("select count(*) from ordering");
+		Object[][] requestData = null;
+		if (rs.next()) {
+			int rows = rs.getInt(1);
+			requestData = new Object[rows][];
+			rs = DataBaseConnect.execute("select * from ordering");
+			for (int i = 0; i < rows; i++) {
+				if (rs.next()) {
+					// make row data
+					Object[] tmpdata = { rs.getString("order_no") , rs.getString("store_id"), rs.getDate("order_date")};
+					requestData[i] = tmpdata;
+				}
+			}
+		}
+		return requestData;
 	}
 
 	@Override
@@ -184,20 +204,6 @@ class warehouseheadGUI extends JFrame implements Runnable, ActionListener {
 			lbTime.setText("Current time : " + new Date().toString());
 		}
 	}
-
-	@Override
-	public void actionPerformed(ActionEvent e) {
-		if (e.getSource() == btnWarehouseDetail) {
-
-		} else if (e.getSource() == btnStoreDetail) {
-
-		} else if (e.getSource() == btnEachProcess) {
-
-		} else if (e.getSource() == btnAllProcess) {
-
-		}
-	}
-
 }
 
 public class Head extends Thread {

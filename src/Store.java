@@ -34,9 +34,9 @@ class storeGUI extends JFrame implements Runnable {
 	 */
 	private static final long serialVersionUID = 1L;
 	private JPanel contentPane;
-	private DefaultTableModel stockModel, transModel;
-	private JTable stockTable, transTable;
-	private JScrollPane stockScroll, transScroll;
+	private DefaultTableModel stockModel, transModel, orderModel;
+	private JTable stockTable, transTable, orderTable;
+	private JScrollPane stockScroll, transScroll, orderScroll;
 	private JPanel stockPanel, transPanel;
 	private JLabel timeLabel;
 	private String id;
@@ -44,10 +44,10 @@ class storeGUI extends JFrame implements Runnable {
 	private ResultSet rs;
 	private final String[] stockColumnNames = { "Product_ID", "Product_Name", "Quantity", "Maximum capacity",
 			"Maintaining minimum quantity" };
-	private final String[] transColumnNames = { "Warehouse name", "goods name", "amount of trasportation",
-			"cost of trasportation", "shipping(Y/N)" };
-	private Object[][] stockData, transData;
-	private int stockRows, transRows;
+	private final String[] transColumnNames = { "Order_No", "Product_ID", "Product_Name", "Amount" };
+	private final String[] orderColumnNames = { "Departure_ID", "Product_ID", "Product_Name", "Amount", "Cost" };
+	private Object[][] stockData, transData, orderData;
+	private int stockRows, transRows, orderRows;
 
 	/**
 	 * Create the frame.
@@ -169,18 +169,14 @@ class storeGUI extends JFrame implements Runnable {
 
 		// order managing tab panel
 		transPanel = new JPanel();
-		tabbedPane.addTab("Order Managing", null, transPanel, null);
-
+		tabbedPane.addTab("Order Management", null, transPanel, null);
 		transPanel.setLayout(null);
 
-		Object[][] transData = { { "A Warehouse", "A", new Integer(50), new Integer(30000), new Boolean(false) } };
+		//table of orders
+		transData = getOrderingData();
 		transModel = new DefaultTableModel(transData, transColumnNames);
 		transTable = new JTable(transModel) {
-			/**
-			 * 
-			 */
 			private static final long serialVersionUID = 1L;
-
 			@Override
 			public boolean isCellEditable(int row, int column) {
 				return false;
@@ -188,10 +184,25 @@ class storeGUI extends JFrame implements Runnable {
 		};
 
 		transScroll = new JScrollPane(transTable);
-		transScroll.setBounds(12, 46, 596, 238);
+		transScroll.setBounds(12, 46, 596, 119);
 		transPanel.add(transScroll);
+		
+		//table of shippings inform
+		orderData = getShippingData();
+		orderModel = new DefaultTableModel(orderData, orderColumnNames);
+		orderTable = new JTable(orderModel) {
+			private static final long serialVersionUID = 1L;
+			@Override
+			public boolean isCellEditable(int row, int column) {
+				return false;
+			}
+		};
+		
+		orderScroll = new JScrollPane(orderTable);
+		orderScroll.setBounds(12, 170, 596, 119);
+		transPanel.add(orderScroll);
 
-		JButton btnReceived = new JButton("Receipt of Completed");
+		JButton btnReceived = new JButton("Received");
 		btnReceived.setBounds(486, 294, 122, 23);
 		transPanel.add(btnReceived);
 
@@ -231,10 +242,10 @@ class storeGUI extends JFrame implements Runnable {
 		}
 	}
 
-	public Object[][] getInventoryData(int columns) throws SQLException {
-		Object[][] stockData = new Object[columns][];
+	public Object[][] getInventoryData(int rows) throws SQLException {
+		Object[][] stockData = new Object[rows][];
 		rs = DataBaseConnect.execute("select * from store_inventory where store_id='" + id + "'");
-		for (int i = 0; i < stockData.length; i++) {
+		for (int i = 0; i < rows; i++) {
 			if (rs.next()) {
 				String strProduct_Name = null;
 				ResultSet pdNameSet = DataBaseConnect
@@ -248,8 +259,60 @@ class storeGUI extends JFrame implements Runnable {
 		}
 		return stockData;
 	}
-	
-	//getter and setter for field
+
+	public Object[][] getOrderingData() throws SQLException {
+		ArrayList<String> orderIDs = new ArrayList<String>();
+		// get this id's orders
+		rs = DataBaseConnect.execute("select * from ordering where store_id='" + id + "'");
+		while (rs.next()) {
+			orderIDs.add(rs.getString("order_no"));
+		}
+		Object[][] orderData = new Object[orderIDs.size()][];
+		for (int i = 0; i < orderIDs.size(); i++) {
+			rs = DataBaseConnect.execute("select * from ordering_list where order_no=" + orderIDs.get(i));
+			if (rs.next()) {
+				String strProduct_Name = null;
+				ResultSet pdNameSet = DataBaseConnect
+						.execute("select * from product where product_id='" + rs.getString("product_id") + "'");
+				// get name of product using product_id
+				if (pdNameSet.next())
+					strProduct_Name = pdNameSet.getString("product_name");
+
+				// make row data
+				Object[] tmpdata = { orderIDs.get(i), rs.getString("product_id"), strProduct_Name,
+						rs.getInt("amount") };
+				orderData[i] = tmpdata; // add to data set
+			}
+		}
+		return orderData;
+	}
+
+	public Object[][] getShippingData() throws SQLException {
+		rs = DataBaseConnect.execute("select count(*) from shipping where arrival_=" + id);
+		Object[][] shipData = null;
+		if (rs.next()) {
+			shipData = new Object[rs.getInt(1)][];
+			for (int i = 0; i < rs.getInt(1); i++) {
+				rs = DataBaseConnect.execute("select * from shipping where arrival_=" + id);
+				if (rs.next()) {
+					String strProduct_Name = null;
+					ResultSet pdNameSet = DataBaseConnect
+							.execute("select * from product where product_id='" + rs.getString("product_id") + "'");
+					// get name of product using product_id
+					if (pdNameSet.next())
+						strProduct_Name = pdNameSet.getString("product_name");
+
+					// make row data
+					Object[] tmpdata = { rs.getString("starting_"), rs.getString("product_id"), strProduct_Name,
+							rs.getInt("amount"), rs.getDouble("cost") };
+					shipData[i] = tmpdata;
+				}
+			}
+		}
+		return shipData;
+	}
+
+	// getter and setter for field
 	public String[] getStockColumnNames() {
 		return stockColumnNames;
 	}
@@ -273,7 +336,7 @@ class storeGUI extends JFrame implements Runnable {
 	public Object[][] getTransData() {
 		return transData;
 	}
-	
+
 	public int getStockRows() {
 		return stockRows;
 	}
@@ -390,13 +453,14 @@ public class Store extends Thread { // super class for warehouse and store
 				command = in.readLine(); // ream command from server
 				System.out.println(command);
 				if (command.startsWith("E") || command.startsWith("MX") || command.startsWith("MN"))
-					if (kind == 2){
+					if (kind == 2) {
 						storeForm.setStockData(storeForm.getInventoryData(storeForm.getStockRows()));
-						storeForm.getStockModel().setDataVector(storeForm.getStockData(), storeForm.getStockColumnNames());
-					}
-					else{
+						storeForm.getStockModel().setDataVector(storeForm.getStockData(),
+								storeForm.getStockColumnNames());
+					} else {
 						warehouseForm.setStockData(warehouseForm.getInventoryData(warehouseForm.getStockRows()));
-						warehouseForm.getStockModel().setDataVector(warehouseForm.getStockData(), warehouseForm.getStockColumnNames());
+						warehouseForm.getStockModel().setDataVector(warehouseForm.getStockData(),
+								warehouseForm.getStockColumnNames());
 					}
 				if (command.startsWith("Verifying"))
 					out.println(this.id);
