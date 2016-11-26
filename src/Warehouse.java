@@ -1,3 +1,4 @@
+
 /*
  *filename : Warehouse.java
  *author : team Tic Toc
@@ -98,6 +99,7 @@ class warehouseGUI extends JFrame implements Runnable {
 		JButton btnModifyStock = new JButton("Edit inventory");
 		btnModifyStock.setBounds(80, 275, 116, 23);
 		btnModifyStock.addActionListener(new ActionListener() {
+
 			@Override
 			public void actionPerformed(ActionEvent arg0) {
 				new Add_popup("Edit Inventory", "Product ID", "Quantity") {
@@ -119,6 +121,7 @@ class warehouseGUI extends JFrame implements Runnable {
 		JButton btnModifyMax = new JButton("Edit Max Capacity");
 		btnModifyMax.setBounds(230, 275, 173, 23);
 		btnModifyMax.addActionListener(new ActionListener() {
+
 			@Override
 			public void actionPerformed(ActionEvent arg0) {
 				new Add_popup("Edit Max Capacity", "Product ID", "Max Capacity") {
@@ -140,6 +143,7 @@ class warehouseGUI extends JFrame implements Runnable {
 		JButton btnModifyMin = new JButton("Edit Min Stock Amount");
 		btnModifyMin.setBounds(410, 275, 173, 23);
 		btnModifyMin.addActionListener(new ActionListener() {
+
 			@Override
 			public void actionPerformed(ActionEvent arg0) {
 				new Add_popup("Edit Min Quantity", "Product ID", "Min Quantity") {
@@ -168,6 +172,7 @@ class warehouseGUI extends JFrame implements Runnable {
 		transData = getOrderingData();
 		transModel = new DefaultTableModel(transData, transColumnNames);
 		transTable = new JTable(transModel) {
+
 			private static final long serialVersionUID = 1L;
 
 			@Override
@@ -205,21 +210,46 @@ class warehouseGUI extends JFrame implements Runnable {
 		btnNew.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent arg0) {
-				new Add_popup("New Order", "Product ID", "Product Quantity") {
-					private static final long serialVersionUID = 1L;
-					@Override
-					public void makeCommand() {
-						String command = "O;";
-						command += id + ";";
-						command += this.textField.getText() + ";";
-						command += this.textField_1.getText() + ";";
-						form.getOut().println(command);
-					}
+				try {
+					new NewOrder(id, false) {
+						private static final long serialVersionUID = 1L;
 
-				};
+						@Override
+						void makeCommand() {
+							String command = "O;";
+							command += id + ";";
+							command += this.getCommandData().size() + ";";
+							for (int i = 0; i < this.getCommandData().size(); i++) {
+								command += this.getCommandData().get(i)[0] + ";";
+								command += this.getCommandData().get(i)[1] + ";";
+							}
+							form.getOut().println(command);
+						}
+					};
+				} catch (SQLException e) {
+					e.printStackTrace();
+				}
 			}
 		});
 		transPanel.add(btnNew);
+		
+		JButton btnDetail = new JButton("Show Detail");
+		btnDetail.setBounds(494, 10, 114, 23);
+		btnDetail.addActionListener(new ActionListener() {
+
+			@Override
+			public void actionPerformed(ActionEvent arg0) {
+				int selectedRow = transTable.getSelectedRow();
+				String orderNO = (String) transTable.getValueAt(selectedRow, 0);
+				try {
+					new OrderDetail(orderNO);
+				} catch (SQLException e) {
+					e.printStackTrace();
+				}
+			}
+			
+		});
+		transPanel.add(btnDetail);
 
 		// SHOULD ADD EVENT HANDLER!!
 		JButton btnCancle = new JButton("Cancel Order");
@@ -333,7 +363,7 @@ class warehouseGUI extends JFrame implements Runnable {
 	}
 
 	public DefaultTableModel getStockModel() {
-		return stockModel;	
+		return stockModel;
 	}
 
 	public DefaultTableModel getTransModel() {
@@ -400,7 +430,7 @@ public class Warehouse extends Store {
 	}
 
 	public Warehouse(String id, String password, int kind) throws Exception { // Warehouse
-																
+
 		super(id, password, kind);
 	}
 

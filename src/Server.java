@@ -1,10 +1,3 @@
-/*
- *filename : Server.java
- *author : team Tic Toc
- *since : 2016.10.17
- *purpose/function : 
- *
- */
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -13,6 +6,7 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Date;
 import java.util.HashSet;
 
 public class Server {
@@ -72,8 +66,9 @@ public class Server {
 				writers.add(out); // add printwriter
 
 				while (true) {
-					String input = in.readLine(); // when client send message to server
-					if (input == null) { 
+					String input = in.readLine(); // when client send message to
+													// server
+					if (input == null) {
 						return;
 					}
 					for (PrintWriter writer : writers) { // do jobs
@@ -94,9 +89,9 @@ public class Server {
 								DataBaseConnect.update("update warehouse_inventory set amount=" + commands[3]
 										+ " where warehouse_id=" + commands[1] + " and product_id=" + commands[2]);
 							}
-							out.println(input+"has completed");
+							out.println(input + "has completed");
 							break;
-							
+
 						case "MX": // edit inventory capacity
 							// check if this member is store
 							rs = DataBaseConnect
@@ -111,9 +106,9 @@ public class Server {
 								DataBaseConnect.update("update warehouse_inventory set product_max=" + commands[3]
 										+ " where warehouse_id=" + commands[1] + " and product_id=" + commands[2]);
 							}
-							out.println(input+"has completed");
+							out.println(input + "has completed");
 							break;
-							
+
 						case "MN": // edit inventory quantity
 							// check if this member is store
 							rs = DataBaseConnect
@@ -128,32 +123,47 @@ public class Server {
 								DataBaseConnect.update("update warehouse_inventory set product_min=" + commands[3]
 										+ " where warehouse_id=" + commands[1] + " and product_id=" + commands[2]);
 							}
-							out.println(input+"has completed");
+							out.println(input + "has completed");
 							break;
-							
+
+						case "B": // batch process
+							calculate(commands[1]); // calculate using order_no
+
 						case "O": // make new order
 							int orderNo = 1;
-							rs = DataBaseConnect.execute("select order_no from ordering");
-							while(rs.next())
-								orderNo=rs.getInt(1);
+							rs = DataBaseConnect.execute("select * from ordering");
+							while (rs.next())
+								orderNo = rs.getInt(1); //get max value of order_number 
+							++orderNo; // generate new order_No
 							
+							// insert into ordering
+							DataBaseConnect.update("insert into ordering values ('" + orderNo + "','" + commands[1]
+									+ "','" + new Date(System.currentTimeMillis()) + "')");
+							
+							// insert into ordering_list
+							for (int i = 1; i <= Integer.parseInt(commands[2]); i++) {
+								DataBaseConnect.update("insert into ordering_list values ('" + commands[i * 2 + 1]
+										+ "','" + (orderNo) + "','" + commands[i * 2 + 2] + "')");
+							}
+							out.println(input + "has completed");
 							break;
-							
+
 						case "CO": // edit CancelOrder
-							
+							DataBaseConnect.update("delete from ordering_list where order_no="+commands[1]);
+							DataBaseConnect.update("delete from ordering where order_no="+commands[1]);
+							out.println(input + "has completed");
 							break;
-							
+
 						case "C": // edit completed
 							// check if this member is store
-							
+
 							break;
-							
+
 						case "S": // edit shipping
 							// check if this member is store
-							
+
 							break;
-							
-							
+
 						}
 					}
 				}
@@ -162,7 +172,7 @@ public class Server {
 			} catch (SQLException e) {
 				e.printStackTrace();
 			} finally {
-				// 
+				//
 				if (id != null)
 					ids.remove(id);
 				if (out != null) {
@@ -174,6 +184,10 @@ public class Server {
 					e.printStackTrace();
 				}
 			}
+		}
+
+		private void calculate(String order_no) {
+
 		}
 	}
 }

@@ -1,3 +1,4 @@
+
 /*
  *filename : Store.java
  *author : team Tic Toc
@@ -44,7 +45,7 @@ class storeGUI extends JFrame implements Runnable {
 	private ResultSet rs;
 	private final String[] stockColumnNames = { "Product_ID", "Product_Name", "Quantity", "Maximum capacity",
 			"Maintaining minimum quantity" };
-	private final String[] transColumnNames = { "Order_No", "Product_ID", "Product_Name", "Amount" };
+	private final String[] transColumnNames = { "Order_No", "Order_Products", "Order_Date" };
 	private final String[] orderColumnNames = { "Departure_ID", "Product_ID", "Product_Name", "Amount", "Cost" };
 	private Object[][] stockData, transData, orderData;
 	private int stockRows, transRows, orderRows;
@@ -172,11 +173,12 @@ class storeGUI extends JFrame implements Runnable {
 		tabbedPane.addTab("Order Management", null, transPanel, null);
 		transPanel.setLayout(null);
 
-		//table of orders
+		// table of orders
 		transData = getOrderingData();
 		transModel = new DefaultTableModel(transData, transColumnNames);
 		transTable = new JTable(transModel) {
 			private static final long serialVersionUID = 1L;
+
 			@Override
 			public boolean isCellEditable(int row, int column) {
 				return false;
@@ -186,18 +188,19 @@ class storeGUI extends JFrame implements Runnable {
 		transScroll = new JScrollPane(transTable);
 		transScroll.setBounds(12, 46, 596, 119);
 		transPanel.add(transScroll);
-		
-		//table of shippings inform
+
+		// table of shippings inform
 		orderData = getShippingData();
 		orderModel = new DefaultTableModel(orderData, orderColumnNames);
 		orderTable = new JTable(orderModel) {
 			private static final long serialVersionUID = 1L;
+
 			@Override
 			public boolean isCellEditable(int row, int column) {
 				return false;
 			}
 		};
-		
+
 		orderScroll = new JScrollPane(orderTable);
 		orderScroll.setBounds(12, 170, 596, 119);
 		transPanel.add(orderScroll);
@@ -211,26 +214,61 @@ class storeGUI extends JFrame implements Runnable {
 		btnNew.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent arg0) {
-				new Add_popup("New Order", "Product ID", "Product Quantity") {
-					private static final long serialVersionUID = 1L;
+				try {
+					new NewOrder(id, true) {
+						private static final long serialVersionUID = 1L;
 
-					@Override
-					public void makeCommand() {
-						String command = "O;";
-						command += id + ";";
-						command += this.textField.getText() + ";";
-						command += this.textField_1.getText() + ";";
-						form.getOut().println(command);
-					}
-
-				};
+						@Override
+						void makeCommand() {
+							String command = "O;";
+							command += id + ";";
+							command += this.getCommandData().size() + ";";
+							for (int i = 0; i < this.getCommandData().size(); i++) {
+								command += this.getCommandData().get(i)[0] + ";";
+								command += this.getCommandData().get(i)[1] + ";";
+							}
+							form.getOut().println(command);
+						}
+					};
+				} catch (SQLException e) {
+					e.printStackTrace();
+				}
 			}
 		});
 		transPanel.add(btnNew);
+		
+		JButton btnDetail = new JButton("Show Detail");
+		btnDetail.setBounds(494, 10, 114, 23);
+		btnDetail.addActionListener(new ActionListener() {
 
-		// SHOULD ADD EVENT HANDLER!!
+			@Override
+			public void actionPerformed(ActionEvent arg0) {
+				int selectedRow = transTable.getSelectedRow();
+				String orderNO = (String) transTable.getValueAt(selectedRow, 0);
+				try {
+					new OrderDetail(orderNO);
+				} catch (SQLException e) {
+					e.printStackTrace();
+				}
+			}
+			
+		});
+		transPanel.add(btnDetail);
+
 		JButton btnCancle = new JButton("Cancel Order");
 		btnCancle.setBounds(164, 10, 114, 23);
+		btnCancle.addActionListener(new ActionListener() {
+
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				int rows[] = transTable.getSelectedRows();
+				for(int i=0;i<rows.length;i++){
+					String orderNO = (String) transTable.getValueAt(rows[i], 0);
+					form.getOut().println("CO;"+orderNO+";");
+				}
+			}
+			
+		});
 		transPanel.add(btnCancle);
 	}
 
@@ -267,20 +305,18 @@ class storeGUI extends JFrame implements Runnable {
 		while (rs.next()) {
 			orderIDs.add(rs.getString("order_no"));
 		}
-		Object[][] orderData = new Object[orderIDs.size()][];
-		for (int i = 0; i < orderIDs.size(); i++) {
-			rs = DataBaseConnect.execute("select * from ordering_list where order_no=" + orderIDs.get(i));
-			if (rs.next()) {
-				String strProduct_Name = null;
-				ResultSet pdNameSet = DataBaseConnect
-						.execute("select * from product where product_id='" + rs.getString("product_id") + "'");
-				// get name of product using product_id
-				if (pdNameSet.next())
-					strProduct_Name = pdNameSet.getString("product_name");
 
-				// make row data
-				Object[] tmpdata = { orderIDs.get(i), rs.getString("product_id"), strProduct_Name,
-						rs.getInt("amount") };
+		Object[][] orderData = new Object[orderIDs.size()][];
+		rs = DataBaseConnect.execute("select * from ordering where store_id=" + id);
+		for (int i = 0; i < orderIDs.size(); i++) {
+			if (rs.next()) {
+				int products = 0;
+				ResultSet tmpRS = DataBaseConnect.execute("select count(*) from ordering_list where order_no="+orderIDs.get(i));
+				if(tmpRS.next())
+					products = tmpRS.getInt(1);
+				// make row data {Order_number, Order_products, Order_Date}
+				Object[] tmpdata = { orderIDs.get(i), products,
+						rs.getDate("order_date") };
 				orderData[i] = tmpdata; // add to data set
 			}
 		}
@@ -359,7 +395,8 @@ public class Store extends Thread { // super class for warehouse and store
 		private int min; // min quantity
 		/* field ends */
 
-		public Stock(String name, int remain, int max, int min) { // Stock constructor
+		public Stock(String name, int remain, int max, int min) { // Stock
+																	// constructor
 			this.name = name;
 			this.remain = remain;
 			this.max = max;
@@ -385,7 +422,7 @@ public class Store extends Thread { // super class for warehouse and store
 		private String name; // product name
 		private int quantity; // quantity
 		private int cost; // cost
-		private boolean isSent; //state of sending
+		private boolean isSent; // state of sending
 		// private boolean isReceived;
 
 		public void setSent(boolean isSent) { // edit state of sending
@@ -393,7 +430,7 @@ public class Store extends Thread { // super class for warehouse and store
 		}
 
 		public Order(String warename, String name, int quantity, int cost, boolean issent) { // Order
-																								
+
 			this.warehouseName = warename;
 			this.name = name;
 			this.quantity = quantity;
@@ -424,7 +461,8 @@ public class Store extends Thread { // super class for warehouse and store
 		this.kind = kind;
 		this.id = id;
 		this.password = password;
-		socket = new Socket("localhost", 9001); // set socket(localhost, port 9001)
+		socket = new Socket("localhost", 9001); // set socket(localhost, port
+												// 9001)
 		// create stream at set socket
 		in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
 		out = new PrintWriter(socket.getOutputStream(), true);
@@ -462,9 +500,19 @@ public class Store extends Thread { // super class for warehouse and store
 						warehouseForm.getStockModel().setDataVector(warehouseForm.getStockData(),
 								warehouseForm.getStockColumnNames());
 					}
-				if (command.startsWith("Verifying"))
+				else if (command.startsWith("O") || command.startsWith("CO")) {
+					if (kind == 2) {
+						storeForm.setTransData(storeForm.getOrderingData());
+						storeForm.getTransModel().setDataVector(storeForm.getTransData(),
+								storeForm.getTransColumnNames());
+					} else {
+						warehouseForm.setTransData(warehouseForm.getOrderingData());
+						warehouseForm.getTransModel().setDataVector(warehouseForm.getTransData(),
+								warehouseForm.getTransColumnNames());
+					}
+				} else if (command.startsWith("Verifying"))
 					out.println(this.id);
-				if (command.startsWith("Accepted")) {
+				else if (command.startsWith("Accepted")) {
 					// popup for login success
 					JOptionPane.showMessageDialog(frame, "You are connected to server.");
 				}

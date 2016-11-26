@@ -238,47 +238,12 @@ public class Head extends Thread {
 	private BufferedReader fin; // File input stream
 	/* End of field */
 
-	public void showDetail(Warehouse obj) {
-
-	}
-
-	public void showDetail(Store obj) {
-
-	}
-
-	public void calculate(Request r) {
-
-		/* calculating ... */
-
-		r.confirmed = true;
-	}
-
 	/* head constructor */
 	public Head() throws Exception {
 		socket = new Socket("localhost", 9001); // setting socket(localhost, port 9001)
 		// create stream at set socket
 		in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
 		out = new PrintWriter(socket.getOutputStream(), true);
-		// fin = new BufferedReader(new FileReader("data/admin.txt"));
-		// while (fin.ready()) {
-		// String command = fin.readLine();
-		// String[] tokens = command.split(";");
-		// switch (tokens[0]) {
-		// case "W":
-		// String[] warehouseInfo = { tokens[1], tokens[2], tokens[3], tokens[4]
-		// };
-		// break;
-		// case "S":
-		// break;
-		// case "R": // make Request object and add to 'requests' ArrayList.
-		// Request r = new Request(tokens[1], tokens[2],
-		// Integer.parseInt(tokens[3]),
-		// tokens[4] == "C" ? true : false);
-		// requests.add(r);
-		// break;
-		// }
-		// }
-
 		Thread gui = new Thread(new warehouseheadGUI());
 		this.start();
 		gui.start();
