@@ -1,3 +1,10 @@
+/*
+ *filename : DataBaseConnect.java
+ *author : team Tic Toc
+ *since : 2016.11.25
+ *purpose/function : 
+ *
+ */
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.ResultSet;

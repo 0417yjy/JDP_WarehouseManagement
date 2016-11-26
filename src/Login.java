@@ -1,3 +1,10 @@
+/*
+ *filename : Login.java
+ *author : team Tic Toc
+ *since : 2016.10.07
+ *purpose/function : 
+ *
+ */
 import java.awt.Dimension;
 import java.awt.EventQueue;
 import java.awt.Font;

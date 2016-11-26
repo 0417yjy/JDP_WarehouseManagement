@@ -1,3 +1,10 @@
+/*
+ *filename : GoogMatrixRequest.java
+ *author : team Tic Toc
+ *since : 2016.11.11
+ *purpose/function : 
+ *
+ */
 import com.squareup.okhttp.OkHttpClient;
 import com.squareup.okhttp.Request;
 import com.squareup.okhttp.Response;

@@ -1,3 +1,10 @@
+/*
+ *filename : LineGraph.java
+ *author : team Tic Toc
+ *since : 2016.11.16
+ *purpose/function : 
+ *
+ */
 import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Dimension;

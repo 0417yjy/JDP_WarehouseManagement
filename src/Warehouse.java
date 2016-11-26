@@ -1,3 +1,10 @@
+/*
+ *filename : Warehouse.java
+ *author : team Tic Toc
+ *since : 2016.10.05
+ *purpose/function : 
+ *
+ */
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.sql.ResultSet;
