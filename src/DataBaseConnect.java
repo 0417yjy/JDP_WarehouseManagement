@@ -2,7 +2,7 @@
  *filename : DataBaseConnect.java
  *author : team Tic Toc
  *since : 2016.11.25
- *purpose/function : 
+ *purpose/function : Connect to database.
  *
  */
 import java.sql.Connection;

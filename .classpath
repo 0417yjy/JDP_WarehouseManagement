@@ -6,7 +6,5 @@
 	<classpathentry kind="lib" path="lib/okio-1.11.0.jar"/>
 	<classpathentry kind="lib" path="jxl.jar"/>
 	<classpathentry kind="lib" path="mysql-connector-java-5.1.40-bin.jar"/>
-	<classpathentry kind="lib" path="okhttp-2.5.0.jar"/>
-	<classpathentry kind="lib" path="okio-1.11.0.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

@@ -2,7 +2,8 @@
  *filename : LineGraph.java
  *author : team Tic Toc
  *since : 2016.11.16
- *purpose/function : 
+ *purpose/function : Linegraph can be seen in head. Users can see graphs of store or warehouse. The graph shows fluctuation of 1 month's stock.
+ *In graph, when mouse cursor moves to a point of graph, details will be shown.
  *
  */
 import java.awt.BasicStroke;
