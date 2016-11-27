@@ -73,7 +73,6 @@ public class Server {
 						return;
 					}
 					System.out.println(id + " : " + input);
-					// for (PrintWriter writer : writers) { // do jobs
 					String[] commands = input.split(";");
 					boolean isStore = false;
 					switch (commands[0]) {
@@ -84,6 +83,8 @@ public class Server {
 						if (rs.next()) {
 							isStore = rs.getBoolean(1);
 						}
+
+						// update inventory
 						if (isStore) {
 							DataBaseConnect.update("update store_inventory set amount=" + commands[3]
 									+ " where store_id=" + commands[1] + " and product_id=" + commands[2]);
@@ -91,6 +92,10 @@ public class Server {
 							DataBaseConnect.update("update warehouse_inventory set amount=" + commands[3]
 									+ " where warehouse_id=" + commands[1] + " and product_id=" + commands[2]);
 						}
+
+						// add to log
+						DataBaseConnect.update(makeLog(commands[2], commands[1], commands[3], isStore));
+
 						for (PrintWriter writer : writers)
 							writer.println(input + "has completed");
 						break;
@@ -138,7 +143,7 @@ public class Server {
 						break;
 
 					case "O": // make new order
-						int orderNo = 1;
+						int orderNo = 0;
 						rs = DataBaseConnect.execute("select * from ordering");
 						while (rs.next())
 							orderNo = rs.getInt(1); // get max value of
@@ -174,6 +179,14 @@ public class Server {
 						DataBaseConnect.update("update store_inventory set amount=amount+" + commands[3]
 								+ " where store_id=" + commands[1] + " and product_id=" + commands[2]);
 
+						// add to log
+						ResultSet qtySet = DataBaseConnect.execute("select * from store_inventory where store_id="
+								+ commands[1] + " and product_id=" + commands[2]);
+						if (qtySet.next()) {
+							int amount = qtySet.getInt("amount");
+							DataBaseConnect.update(makeLog(commands[2], commands[1], amount + "", isStore));
+						}
+						
 						for (PrintWriter writer : writers)
 							writer.println(input + "has completed");
 						break;
@@ -188,19 +201,24 @@ public class Server {
 						DataBaseConnect.update("update warehouse_inventory set amount=amount-" + commands[4]
 								+ " where warehouse_id=" + commands[1] + " and product_id=" + commands[3]);
 
+						// add to log
+						qtySet = DataBaseConnect.execute("select * from warehouse_inventory where warehouse_id="
+								+ commands[1] + " and product_id=" + commands[3]);
+						if (qtySet.next()) {
+							int amount = qtySet.getInt("amount");
+							DataBaseConnect.update(makeLog(commands[3], commands[1], amount + "", isStore));
+						}
+						
 						for (PrintWriter writer : writers)
 							writer.println(input + "has completed");
 						break;
-
 					}
 				}
-				// }
 			} catch (IOException e) {
 				e.printStackTrace();
 			} catch (SQLException e) {
 				e.printStackTrace();
 			} finally {
-				//
 				if (id != null)
 					ids.remove(id);
 				if (out != null) {
@@ -209,9 +227,27 @@ public class Server {
 				try {
 					socket.close();
 				} catch (IOException e) {
-					e.printStackTrace();
+					System.out.println(id+" has logged off");
 				}
 			}
+		}
+
+		private String makeLog(String product_id, String id, String changeResult, boolean isStore) throws SQLException {
+			String logQuery = null;
+			int logNo = 1;
+			int boolNum = isStore ? 1 : 0;
+			rs = DataBaseConnect.execute("select * from ordering");
+
+			// get max value of log_number
+			while (rs.next())
+				logNo = rs.getInt(1);
+			++logNo; // generate new log_No
+
+			// make log insert query
+			logQuery = "insert into log values ('" + logNo + "','" + product_id + "','" + id + "','" + changeResult
+					+ "','" + boolNum + "','" + new Date(System.currentTimeMillis()) + "')";
+
+			return logQuery;
 		}
 
 		private void calculate(String order_no) throws SQLException {

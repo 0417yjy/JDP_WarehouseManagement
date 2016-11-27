@@ -401,6 +401,7 @@ class storeGUI extends JFrame implements Runnable {
 	public DefaultTableModel getTransModel() {
 		return transModel;
 	}
+
 	public Object[][] getOrderData() {
 		return orderData;
 	}
@@ -419,7 +420,7 @@ class storeGUI extends JFrame implements Runnable {
 }
 
 public class Store extends Thread { // super class for warehouse and store
-	
+
 	/* field starts */
 	private String id; // inherent number
 	private String password;
@@ -490,23 +491,33 @@ public class Store extends Thread { // super class for warehouse and store
 								warehouseForm.getSendColumnNames());
 					}
 				} else if (command.startsWith("O") || command.startsWith("CO")) {
-					storeForm.setTransData(storeForm.getOrderingData());
-					storeForm.getTransModel().setDataVector(storeForm.getTransData(), storeForm.getTransColumnNames());
+					if (kind == 2) {
+						storeForm.setTransData(storeForm.getOrderingData());
+						storeForm.getTransModel().setDataVector(storeForm.getTransData(),
+								storeForm.getTransColumnNames());
+					}
 				} else if (command.startsWith("S")) {
 					if (kind == 2) {
 						storeForm.setOrderData(storeForm.getShippingData());
 						storeForm.getOrderModel().setDataVector(storeForm.getOrderData(),
 								storeForm.getOrderColumnNames());
 					} else {
+						warehouseForm.setStockData(warehouseForm.getInventoryData(warehouseForm.getStockRows()));
+						warehouseForm.getStockModel().setDataVector(warehouseForm.getStockData(),
+								warehouseForm.getStockColumnNames());
 						warehouseForm.setSendData(warehouseForm.getSendingData());
 						warehouseForm.getSendModel().setDataVector(warehouseForm.getSendData(),
 								warehouseForm.getSendColumnNames());
 					}
 				} else if (command.startsWith("R")) {
-					storeForm.setStockData(storeForm.getInventoryData(storeForm.getStockRows()));
-					storeForm.getStockModel().setDataVector(storeForm.getStockData(), storeForm.getStockColumnNames());
-					storeForm.setOrderData(storeForm.getShippingData());
-					storeForm.getOrderModel().setDataVector(storeForm.getOrderData(), storeForm.getOrderColumnNames());
+					if (kind == 2) {
+						storeForm.setStockData(storeForm.getInventoryData(storeForm.getStockRows()));
+						storeForm.getStockModel().setDataVector(storeForm.getStockData(),
+								storeForm.getStockColumnNames());
+						storeForm.setOrderData(storeForm.getShippingData());
+						storeForm.getOrderModel().setDataVector(storeForm.getOrderData(),
+								storeForm.getOrderColumnNames());
+					}
 				} else if (command.startsWith("Verifying"))
 					out.println(this.id);
 				else if (command.startsWith("Accepted")) {
