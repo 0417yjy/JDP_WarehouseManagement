@@ -1,3 +1,4 @@
+
 /*
  *filename : LineGraph.java
  *author : team Tic Toc
@@ -28,6 +29,7 @@ import java.text.Format;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.Random;
 
 import javax.swing.JButton;
 import javax.swing.JFrame;
@@ -50,7 +52,7 @@ public class LineGraph extends Panel implements ActionListener, MouseMotionListe
 
 	/*****************************************************************
 	 * Class Name : LineGraph Description : Make a frame which contains a
-	 * graphic line chart. Parameters : int array, Date array
+	 * graphic line chart. Parameters : String id
 	 *****************************************************************/
 
 	private static final long serialVersionUID = 1L;
@@ -58,22 +60,28 @@ public class LineGraph extends Panel implements ActionListener, MouseMotionListe
 	private int height = 600; // height of the frame
 	private int padding = 40; // padding of whole panel
 	private int labelPadding = 25; // padding of each label
-	private Color lineColor = Color.red; // Color of lines
+	// Array of pre-determined colors
+	private Color[] lineColor = { Color.red, Color.blue, Color.cyan, Color.darkGray, Color.green, Color.magenta,
+			Color.ORANGE, Color.pink };
 	private Color pointColor = Color.black; // Color of points
-	private Color gridColor = Color.lightGray; // Color of grid
-												// lines
+	// Color of grid lines
+	private Color gridColor = Color.lightGray;
 	private Point mousePoint; // Point that indicate the hovering point
 	private static final Stroke GRAPH_STROKE = new BasicStroke(2f);
 	private int pointWidth = 4; // radius of point
 	private int numberYDivisions = 10; // num of grid lines
+	private int productRows = 0;
 	private boolean hoveringPoint = false;
 	private ArrayList<ArrayList<Integer>> values; // ArrayList of values
-	private ArrayList<ArrayList<Date>> dates; // ArrayList of dates
+	private ArrayList<Date> dates; // ArrayList of dates
 	private ArrayList<ArrayList<Point>> graphPoints; // ArrayList of each point
+	private ArrayList<String> product_ids; // ArrayList of each product's id
+
 	private ResultSet rs;
 	private Font font = new Font("Serif", Font.BOLD, 20);
 	private int pointIndex, arrayIndex;
 	private JButton exportToXLS;
+	Format dateFormat = new SimpleDateFormat("yyyy-MM-dd");
 
 	// Data of each store / warehouse
 	private String id = "[id]";
@@ -81,36 +89,165 @@ public class LineGraph extends Panel implements ActionListener, MouseMotionListe
 	private String address = "[address]";
 	private double latitude, longitude;
 	private double totalValue;
+	private String owner = "[owner]";
+	private String contact = "[contact]";
 	private boolean isStore;
 
+	@SuppressWarnings("deprecation")
 	public LineGraph(String id) throws SQLException {
 		this.id = id;
+		values = new ArrayList<ArrayList<Integer>>();
+		dates = new ArrayList<Date>();
+		product_ids = new ArrayList<String>();
 		rs = DataBaseConnect.execute("select * from identification where Id='" + id + "'");
-		//get this id is store or warehouse
+		// get this id is store or warehouse
 		if (rs.next())
 			isStore = rs.getBoolean("isStore");
 
 		if (isStore) {
 			rs = DataBaseConnect.execute("select * from store where store_id='" + id + "'");
-			//get information of this store
+			// get information of this store
 			if (rs.next()) {
 				this.latitude = rs.getDouble("latitude");
 				this.longitude = rs.getDouble("longitude");
 				this.cash = rs.getDouble("cash");
 				this.address = rs.getString("address");
+				this.owner = rs.getString("owner");
+				this.contact = rs.getString("contact");
 			}
-			values = new ArrayList<ArrayList<Integer>>();
-			dates = new ArrayList<ArrayList<Date>>();
-			rs = DataBaseConnect.execute("select * from store_inventory where store_id='2001'");
-			while(rs.next()) {
-				
+
+			// add each product's id into list
+			rs = DataBaseConnect.execute("select * from store_inventory where store_id=" + id);
+			while (rs.next())
+				product_ids.add(rs.getString("product_id"));
+
+			// get inventory's total value
+			for (int i = 0; i < product_ids.size(); i++) {
+				double unit_price = 0;
+				rs = DataBaseConnect.execute("select * from product where product_id=" + product_ids.get(i));
+				if (rs.next())
+					unit_price = rs.getDouble("unit_price");
+				rs = DataBaseConnect.execute(
+						"select * from store_inventory where store_id=" + id + " and product_id=" + product_ids.get(i));
+				if (rs.next())
+					totalValue += unit_price * rs.getInt("amount");
 			}
-		} else {
+
+			// get number of kinds of products in inventory
+			productRows = product_ids.size();
+
+			// make ArrayList of each products
+			for (int i = 0; i < productRows; i++)
+				values.add(new ArrayList<Integer>());
+
+			// add dates into list(1st day to Today)
+			for (int i = 1; i <= new Date().getDate(); i++)
+				dates.add(new Date(new Date().getYear(), new Date().getMonth(), i));
+
+			// add values into each product's list
+			for (int i = 0; i < productRows; i++) {
+				rs = DataBaseConnect.execute("select * from log where member_id=" + id + " and product_id="
+						+ product_ids.get(i) + " order by change_date");
+				int date = 1;
+				// get value list with log
+				while (rs.next()) {
+					int value = 0;
+					Date logDateObj = rs.getDate("change_date");
+					String dateStr = dateFormat.format(logDateObj);
+					ResultSet tmpRs = rs = DataBaseConnect.execute("select * from log where member_id=" + id
+							+ " and product_id=" + product_ids.get(i) + " and change_date='" + dateStr + "'");
+					// get this date's recent log
+					while (tmpRs.next())
+						value = tmpRs.getInt("changed_result");
+
+					int logDate = logDateObj.getDate();
+					for (; date <= logDate; date++) {
+						// add values into list
+						values.get(i).add(value);
+					}
+				}
+				// if there is no log on today, set to quantity of now
+				if (date <= new Date().getDate()) {
+					rs = DataBaseConnect.execute("select * from store_inventory where store_id=" + id
+							+ " and product_id=" + product_ids.get(i));
+					if (rs.next())
+						for (; date <= new Date().getDate(); date++) {
+							values.get(i).add(rs.getInt("amount"));
+						}
+				}
+			}
+		}
+		// get information of this warehouse
+		else {
 			rs = DataBaseConnect.execute("select * from warehouse where warehouse_id='" + id + "'");
 			if (rs.next()) {
 				this.latitude = rs.getDouble("latitude");
 				this.longitude = rs.getDouble("longitude");
 				this.address = rs.getString("address");
+				this.owner = rs.getString("owner");
+				this.contact = rs.getString("contact");
+			}
+
+			// add each product's id into list
+			rs = DataBaseConnect.execute("select * from warehouse_inventory where warehouse_id=" + id);
+			while (rs.next())
+				product_ids.add(rs.getString("product_id"));
+
+			// get inventory's total value
+			for (int i = 0; i < product_ids.size(); i++) {
+				double unit_price = 0;
+				rs = DataBaseConnect.execute("select * from product where product_id=" + product_ids.get(i));
+				if (rs.next())
+					unit_price = rs.getDouble("unit_price");
+				rs = DataBaseConnect.execute("select * from warehouse_inventory where warehouse_id=" + id
+						+ " and product_id=" + product_ids.get(i));
+				if (rs.next())
+					totalValue += unit_price * rs.getInt("amount");
+			}
+
+			// get number of kinds of products in inventory
+			productRows = product_ids.size();
+
+			// make ArrayList of each products
+			for (int i = 0; i < productRows; i++)
+				values.add(new ArrayList<Integer>());
+
+			// add dates into list(1st day to Today)
+			for (int i = 1; i <= new Date().getDate(); i++)
+				dates.add(new Date(new Date().getYear(), new Date().getMonth(), i));
+
+			// add values into each product's list
+			for (int i = 0; i < productRows; i++) {
+				rs = DataBaseConnect.execute("select * from log where member_id=" + id + " and product_id="
+						+ product_ids.get(i) + " order by change_date");
+				int date = 1;
+				// get value list with log
+				while (rs.next()) {
+					int value = 0;
+					Date logDateObj = rs.getDate("change_date");
+					String dateStr = dateFormat.format(logDateObj);
+					ResultSet tmpRs = rs = DataBaseConnect
+							.execute("select * from log where member_id=" + id + " and product_id=" + product_ids.get(i)
+									+ " and change_date='" + dateStr + "' order by log_no");
+					// get this date's recent log
+					while (tmpRs.next())
+						value = tmpRs.getInt("changed_result");
+
+					int logDate = logDateObj.getDate();
+					for (; date <= logDate; date++) {
+						// add values into list
+						values.get(i).add(value);
+					}
+				}
+				// if there is no log on today, set to quantity of now
+				if (date <= new Date().getDate()) {
+					rs = DataBaseConnect.execute("select * from warehouse_inventory where warehouse_id=" + id
+							+ " and product_id=" + product_ids.get(i));
+					if (rs.next())
+						for (; date <= new Date().getDate(); date++) {
+							values.get(i).add(rs.getInt("amount"));
+						}
+				}
 			}
 		}
 
@@ -135,7 +272,7 @@ public class LineGraph extends Panel implements ActionListener, MouseMotionListe
 			currentCashLabel.setBounds(padding, padding + labelPadding, getWidth(), labelPadding);
 			this.add(currentCashLabel);
 		}
-		
+
 		JLabel addressLabel = new JLabel("Address : " + address);
 		addressLabel.setFont(font);
 		addressLabel.setBounds(padding, padding + labelPadding * 2, getWidth(), labelPadding);
@@ -157,6 +294,16 @@ public class LineGraph extends Panel implements ActionListener, MouseMotionListe
 		itemsLabel.setFont(font);
 		itemsLabel.setBounds(padding, padding + labelPadding * 5, getWidth(), labelPadding);
 		this.add(itemsLabel);
+
+		JLabel nameLabel = new JLabel("Owner : " + owner);
+		nameLabel.setFont(font);
+		nameLabel.setBounds(padding, padding + labelPadding * 6, getWidth(), labelPadding);
+		this.add(nameLabel);
+
+		JLabel contactLabel = new JLabel("Contact Number : " + contact);
+		contactLabel.setFont(font);
+		contactLabel.setBounds(padding, padding + labelPadding * 7, getWidth(), labelPadding);
+		this.add(contactLabel);
 
 		exportToXLS = new JButton("Export to .xls file");
 		exportToXLS.setBounds(getWidth() - 4 * padding - 20, (height + labelPadding) / 2 - padding, 140, 20);
@@ -188,7 +335,6 @@ public class LineGraph extends Panel implements ActionListener, MouseMotionListe
 	public void paint(Graphics g) {
 		super.paint(g);
 		Graphics2D g2 = (Graphics2D) g;
-		Format dateFormat = new SimpleDateFormat("yyyy-MM-dd");
 		g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 
 		// draw white background
@@ -232,7 +378,7 @@ public class LineGraph extends Panel implements ActionListener, MouseMotionListe
 				int y1 = y0 - pointWidth;
 				if (i == 0 || i == values.get(0).size() - 1) {
 					g2.setColor(Color.BLACK);
-					String xLabel = dateFormat.format(dates.get(0).get(i));
+					String xLabel = dateFormat.format(dates.get(i));
 					FontMetrics metrics = g2.getFontMetrics();
 					int labelWidth = metrics.stringWidth(xLabel);
 					g2.drawString(xLabel, x0 - labelWidth / 2, y0 + metrics.getHeight() + 3);
@@ -257,10 +403,19 @@ public class LineGraph extends Panel implements ActionListener, MouseMotionListe
 
 		// make line chart
 		Stroke oldStroke = g2.getStroke();
-		g2.setColor(lineColor);
 		g2.setStroke(GRAPH_STROKE);
 		for (int j = 0; j < graphPoints.size(); j++) {
 			for (int i = 0; i < graphPoints.get(j).size() - 1; i++) {
+				if (j + 1 >= lineColor.length) {
+					// if number of products are more than pre-determined color,
+					// make a random color to use.
+					Random generator = new Random();
+					int R = generator.nextInt(255);
+					int G = generator.nextInt(255);
+					int B = generator.nextInt(255);
+					g2.setColor(new Color(R, G, B));
+				} else
+					g2.setColor(lineColor[j]);
 				int x1 = graphPoints.get(j).get(i).x;
 				int y1 = graphPoints.get(j).get(i).y;
 				int x2 = graphPoints.get(j).get(i + 1).x;
@@ -285,12 +440,12 @@ public class LineGraph extends Panel implements ActionListener, MouseMotionListe
 		// draw tooltip when mouse hover the points
 		if (hoveringPoint) {
 			g2.setColor(Color.YELLOW);
-			g2.fillRect(mousePoint.x, mousePoint.y - 20, 80, 20);
+			g2.fillRect(mousePoint.x, mousePoint.y - 30, 80, 30);
 			g2.setFont(new Font("Serif", Font.PLAIN, 10));
 			g2.setColor(Color.black);
+			g2.drawString("Product_ID : " + product_ids.get(arrayIndex), mousePoint.x, mousePoint.y - 21);
 			g2.drawString("Value : " + values.get(arrayIndex).get(pointIndex), mousePoint.x, mousePoint.y - 11);
-			g2.drawString("Date : " + dateFormat.format(dates.get(arrayIndex).get(pointIndex)), mousePoint.x,
-					mousePoint.y - 1);
+			g2.drawString("Date : " + dateFormat.format(dates.get(pointIndex)), mousePoint.x, mousePoint.y - 1);
 		}
 	}
 
@@ -373,7 +528,7 @@ public class LineGraph extends Panel implements ActionListener, MouseMotionListe
 
 		// File to be saved
 		Format dateFormat = new SimpleDateFormat("yyyy-MM-dd");
-		String filename = dateFormat.format(dates.get(0).get(dates.get(0).size() - 1));
+		String filename = dateFormat.format(dates.get(dates.size() - 1));
 		File file = new File(filename + ".xls"); // file name is
 													// Today(yyyy-MM-dd.xls)
 
@@ -381,10 +536,12 @@ public class LineGraph extends Panel implements ActionListener, MouseMotionListe
 		WritableFont infoFont = new WritableFont(WritableFont.ARIAL, 12);
 		WritableFont tableFont = new WritableFont(WritableFont.ARIAL, 10, WritableFont.NO_BOLD, false,
 				UnderlineStyle.NO_UNDERLINE, Colour.WHITE);
+		WritableFont tableDataFont = new WritableFont(WritableFont.ARIAL, 10);
 		WritableCellFormat titleFormat = new WritableCellFormat(titleFont);
 		WritableCellFormat infoTitle = new WritableCellFormat(infoFont);
 		WritableCellFormat infoData = new WritableCellFormat(infoFont);
 		WritableCellFormat tableColumn = new WritableCellFormat(tableFont);
+		WritableCellFormat tableData = new WritableCellFormat(tableDataFont);
 
 		try {
 			// generate file
@@ -413,6 +570,7 @@ public class LineGraph extends Panel implements ActionListener, MouseMotionListe
 			tableColumn.setAlignment(Alignment.CENTRE);
 			tableColumn.setBorder(Border.ALL, BorderLineStyle.THIN);
 			tableColumn.setBackground(Colour.SEA_GREEN);
+			tableData.setBorder(Border.ALL, BorderLineStyle.THIN);
 
 			// Write into cell - Info about this
 			label = new Label(0, 0, "Detail", titleFormat);
@@ -424,11 +582,13 @@ public class LineGraph extends Panel implements ActionListener, MouseMotionListe
 			label = new Label(1, 1, id, infoData);
 			sheet.addCell(label);
 
-			label = new Label(0, 2, "Current Cash", infoTitle);
-			sheet.addCell(label);
+			if (isStore) {
+				label = new Label(0, 2, "Current Cash", infoTitle);
+				sheet.addCell(label);
 
-			numLabel = new Number(1, 2, cash, infoData);
-			sheet.addCell(numLabel);
+				numLabel = new Number(1, 2, cash, infoData);
+				sheet.addCell(numLabel);
+			}
 
 			label = new Label(0, 3, "Address", infoTitle);
 			sheet.addCell(label);
@@ -460,6 +620,18 @@ public class LineGraph extends Panel implements ActionListener, MouseMotionListe
 			numLabel = new Number(1, 8, values.size(), infoData);
 			sheet.addCell(numLabel);
 
+			label = new Label(0, 10, "Owner", infoTitle);
+			sheet.addCell(label);
+
+			label = new Label(1, 10, owner, infoData);
+			sheet.addCell(label);
+
+			label = new Label(0, 11, "Contact Number", infoTitle);
+			sheet.addCell(label);
+
+			label = new Label(1, 11, contact, infoData);
+			sheet.addCell(label);
+
 			// Write into cell - make data table columns
 			label = new Label(3, 1, "Product_ID", tableColumn);
 			sheet.addCell(label);
@@ -479,8 +651,78 @@ public class LineGraph extends Panel implements ActionListener, MouseMotionListe
 			label = new Label(8, 1, "Value", tableColumn);
 			sheet.addCell(label);
 
-			ResultSet rs = DataBaseConnect.execute("select * from product");
+			// Write into cell - make data table
+			if (isStore) {
+				rs = DataBaseConnect.execute("select * from store_inventory where store_id=" + id);
+				int rowIndex = 2;
+				while (rs.next()) {
+					String strProduct_Name = null;
+					String strProduct_desc = null;
+					double unit_price = 0;
+					ResultSet pdNameSet = DataBaseConnect
+							.execute("select * from product where product_id='" + rs.getString("product_id") + "'");
+					if (pdNameSet.next()) {
+						strProduct_Name = pdNameSet.getString("product_name");
+						strProduct_desc = pdNameSet.getString("description");
+						unit_price = pdNameSet.getDouble("unit_price");
+					}
 
+					label = new Label(3, rowIndex, rs.getString("Product_ID"), tableData);
+					sheet.addCell(label);
+
+					label = new Label(4, rowIndex, strProduct_Name, tableData);
+					sheet.addCell(label);
+
+					label = new Label(5, rowIndex, strProduct_desc, tableData);
+					sheet.addCell(label);
+
+					numLabel = new Number(6, rowIndex, unit_price, tableData);
+					sheet.addCell(numLabel);
+
+					numLabel = new Number(7, rowIndex, rs.getInt("amount"), tableData);
+					sheet.addCell(numLabel);
+
+					numLabel = new Number(8, rowIndex, (double) rs.getInt("amount") * unit_price, tableData);
+					sheet.addCell(numLabel);
+
+					++rowIndex;
+				}
+			} else {
+				rs = DataBaseConnect.execute("select * from warehouse_inventory where warehouse_id=" + id);
+				int rowIndex = 2;
+				while (rs.next()) {
+					String strProduct_Name = null;
+					String strProduct_desc = null;
+					double unit_price = 0;
+					ResultSet pdNameSet = DataBaseConnect
+							.execute("select * from product where product_id='" + rs.getString("product_id") + "'");
+					if (pdNameSet.next()) {
+						strProduct_Name = pdNameSet.getString("product_name");
+						strProduct_desc = pdNameSet.getString("description");
+						unit_price = pdNameSet.getDouble("unit_price");
+					}
+
+					label = new Label(3, rowIndex, rs.getString("Product_ID"), tableData);
+					sheet.addCell(label);
+
+					label = new Label(4, rowIndex, strProduct_Name, tableData);
+					sheet.addCell(label);
+
+					label = new Label(5, rowIndex, strProduct_desc, tableData);
+					sheet.addCell(label);
+
+					numLabel = new Number(6, rowIndex, unit_price, tableData);
+					sheet.addCell(numLabel);
+
+					numLabel = new Number(7, rowIndex, rs.getInt("amount"), tableData);
+					sheet.addCell(numLabel);
+
+					numLabel = new Number(8, rowIndex, (double) rs.getInt("amount") * unit_price, tableData);
+					sheet.addCell(numLabel);
+
+					++rowIndex;
+				}
+			}
 			workbook.write();
 			workbook.close();
 		} catch (Exception e) {

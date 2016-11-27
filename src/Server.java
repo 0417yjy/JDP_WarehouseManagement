@@ -236,7 +236,7 @@ public class Server {
 
 		private String makeLog(String product_id, String id, String changeResult, boolean isStore) throws SQLException {
 			String logQuery = null;
-			int logNo = 1;
+			int logNo = 0;
 			int boolNum = isStore ? 1 : 0;
 			rs = DataBaseConnect.execute("select * from log");
 
