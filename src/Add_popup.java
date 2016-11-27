@@ -5,8 +5,6 @@
  *purpose/function : Popup window when pressing button.
  *
  */
-import java.awt.Font;
-  
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
@@ -41,12 +39,10 @@ public abstract class Add_popup extends JFrame implements ActionListener {
 		contentPane.setLayout(null);
 		
 		JLabel lblNewLabel_1 = new JLabel(name);
-		lblNewLabel_1.setFont(new Font("����", Font.PLAIN, 13));
 		lblNewLabel_1.setBounds(22, 22, 100, 19);
 		contentPane.add(lblNewLabel_1);
 		
 		JLabel lblNewLabel_2 = new JLabel(amount);
-		lblNewLabel_2.setFont(new Font("����", Font.PLAIN, 13));
 		lblNewLabel_2.setBounds(22, 50, 100, 19);
 		contentPane.add(lblNewLabel_2);
 		

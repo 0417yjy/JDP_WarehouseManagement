@@ -39,9 +39,17 @@ class warehouseGUI extends JFrame implements Runnable {
 	private ResultSet rs;
 	private final String[] stockColumnNames = { "Product_ID", "Product_Name", "Quantity", "Maximum capacity",
 			"Maintaining minimum quantity" };
-	private final String[] sendColumnNames = { "store name", "x", "y", "name of goods", "amount of transportation" };
+	private final String[] sendColumnNames = { "Store_ID", "Address", "Product_ID", "Product_Name", "Amount" };
 	private Object[][] stockData, sendData;
 	private int stockRows, sendRows;
+
+	public Object[][] getSendData() {
+		return sendData;
+	}
+
+	public void setSendData(Object[][] sendData) {
+		this.sendData = sendData;
+	}
 
 	/**
 	 * Create the frame.
@@ -165,7 +173,7 @@ class warehouseGUI extends JFrame implements Runnable {
 		sendPanel = new JPanel();
 		tabbedPane.addTab("Transprotation Management", null, sendPanel, null);
 		sendPanel.setLayout(null);
-		Object[][] sendData = { { "Store A", "92.5", "45.0", "A", new Integer(50) } };
+		sendData = getSendingData();
 		sendModel = new DefaultTableModel(sendData, sendColumnNames);
 		sendTable = new JTable(sendModel) {
 			private static final long serialVersionUID = -970427320898634808L;
@@ -182,7 +190,21 @@ class warehouseGUI extends JFrame implements Runnable {
 
 		JButton btnSended = new JButton("Shipped");// departure success
 		btnSended.setSize(114, 23);
-		btnSended.setLocation(494, 294);
+		btnSended.setLocation(594, 294);
+		btnSended.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent arg0) {
+				int rows[] = sendTable.getSelectedRows();
+				for (int i = 0; i < rows.length; i++) {
+					String command = "S;";
+					command += id + ";"; // warehouse_id
+					command += sendTable.getValueAt(rows[i], 0) + ";"; // store_id
+					command += sendTable.getValueAt(rows[i], 2) + ";"; // product_id
+					command += sendTable.getValueAt(rows[i], 4) + ";"; // amount
+					form.getOut().println(command);
+				}
+			}
+		});
 		sendPanel.add(btnSended);
 	}
 
@@ -213,40 +235,13 @@ class warehouseGUI extends JFrame implements Runnable {
 		return stockData;
 	}
 
-	public Object[][] getOrderingData() throws SQLException {
-		ArrayList<String> orderIDs = new ArrayList<String>();
-		// get this id's orders
-		rs = DataBaseConnect.execute("select * from ordering where store_id='" + id + "'");
-		while (rs.next()) {
-			orderIDs.add(rs.getString("order_no"));
-		}
-		Object[][] orderData = new Object[orderIDs.size()][];
-		for (int i = 0; i < orderIDs.size(); i++) {
-			rs = DataBaseConnect.execute("select * from ordering_list where order_no=" + orderIDs.get(i));
-			if (rs.next()) {
-				String strProduct_Name = null;
-				ResultSet pdNameSet = DataBaseConnect
-						.execute("select * from product where product_id='" + rs.getString("product_id") + "'");
-				// get name of product using product_id
-				if (pdNameSet.next())
-					strProduct_Name = pdNameSet.getString("product_name");
-
-				// make row data
-				Object[] tmpdata = { orderIDs.get(i), rs.getString("product_id"), strProduct_Name,
-						rs.getInt("amount") };
-				orderData[i] = tmpdata; // add to data set
-			}
-		}
-		return orderData;
-	}
-
-	public Object[][] getShippingData() throws SQLException {
-		rs = DataBaseConnect.execute("select count(*) from shipping where arrival_=" + id);
-		Object[][] shipData = null;
+	public Object[][] getSendingData() throws SQLException {
+		rs = DataBaseConnect.execute("select count(*) from shipping where starting_=" + id + " and shipped=0");
+		Object[][] sendData = null;
 		if (rs.next()) {
-			shipData = new Object[rs.getInt(1)][];
-			for (int i = 0; i < rs.getInt(1); i++) {
-				rs = DataBaseConnect.execute("select * from shipping where arrival_=" + id);
+			sendData = new Object[rs.getInt(1)][];
+			rs = DataBaseConnect.execute("select * from shipping where starting_=" + id + " and shipped=0");
+			for (int i = 0; i < sendData.length; i++) {
 				if (rs.next()) {
 					String strProduct_Name = null;
 					ResultSet pdNameSet = DataBaseConnect
@@ -255,14 +250,22 @@ class warehouseGUI extends JFrame implements Runnable {
 					if (pdNameSet.next())
 						strProduct_Name = pdNameSet.getString("product_name");
 
-					// make row data
-					Object[] tmpdata = { rs.getString("starting_"), rs.getString("product_id"), strProduct_Name,
-							rs.getInt("amount"), rs.getDouble("cost") };
-					shipData[i] = tmpdata;
+					String storeAddress = null;
+					ResultSet stAddSet = DataBaseConnect
+							.execute("select * from store where store_id=" + rs.getString("arrival_"));
+					// get store's address
+					if (stAddSet.next())
+						storeAddress = stAddSet.getString("Address");
+
+					// make row data {Store_ID, Store's Address, Product_ID,
+					// Product_Name, Amount}
+					Object[] tmpdata = { rs.getString("arrival_"), storeAddress, rs.getString("product_id"),
+							strProduct_Name, rs.getInt("amount") };
+					sendData[i] = tmpdata;
 				}
 			}
 		}
-		return shipData;
+		return sendData;
 	}
 
 	public DefaultTableModel getStockModel() {
@@ -295,27 +298,7 @@ class warehouseGUI extends JFrame implements Runnable {
 }
 
 public class Warehouse extends Store {
-	// inner transportation class
-	private class Transport {
-		private String storeName; // store name
-		private String stockName; // stock name
-		private double x, y; // target's coordinate
-		private int amount; // amount
-
-		public Transport(String storeName, String stockName, double x, double y, int amount) {
-			this.stockName = storeName;
-			this.stockName = stockName;
-			this.x = x;
-			this.y = y;
-			this.amount = amount;
-		}
-
-	}
-
-	public Warehouse(String id, String password, int kind) throws Exception { // Warehouse
-
+	public Warehouse(String id, String password, int kind) throws Exception { // Warehouse Constructor
 		super(id, password, kind);
 	}
-
-	private ArrayList<Transport> transports = new ArrayList<Transport>();
 }

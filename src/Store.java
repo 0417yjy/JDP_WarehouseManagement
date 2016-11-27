@@ -46,9 +46,10 @@ class storeGUI extends JFrame implements Runnable {
 	private final String[] stockColumnNames = { "Product_ID", "Product_Name", "Quantity", "Maximum capacity",
 			"Maintaining minimum quantity" };
 	private final String[] transColumnNames = { "Order_No", "Order_Products", "Order_Date" };
-	private final String[] orderColumnNames = { "Departure_ID", "Product_ID", "Product_Name", "Amount", "Cost" };
+	private final String[] orderColumnNames = { "Departure_ID", "Product_ID", "Product_Name", "Amount", "Cost",
+			"Shipped" };
 	private Object[][] stockData, transData, orderData;
-	private int stockRows, transRows, orderRows;
+	private int stockRows;
 
 	/**
 	 * Create the frame.
@@ -207,6 +208,21 @@ class storeGUI extends JFrame implements Runnable {
 
 		JButton btnReceived = new JButton("Received");
 		btnReceived.setBounds(486, 294, 122, 23);
+		btnReceived.addActionListener(new ActionListener() {
+
+			@Override
+			public void actionPerformed(ActionEvent arg0) {
+				int rows[] = orderTable.getSelectedRows();
+				for (int i = 0; i < rows.length; i++) {
+					String command = "R;";
+					command += id + ";"; // warehouse_id
+					command += orderTable.getValueAt(rows[i], 1) + ";"; // product_id
+					command += orderTable.getValueAt(rows[i], 3) + ";"; // amount
+					form.getOut().println(command);
+				}
+			}
+
+		});
 		transPanel.add(btnReceived);
 
 		JButton btnNew = new JButton("New Order");
@@ -328,8 +344,8 @@ class storeGUI extends JFrame implements Runnable {
 		Object[][] shipData = null;
 		if (rs.next()) {
 			shipData = new Object[rs.getInt(1)][];
-			for (int i = 0; i < rs.getInt(1); i++) {
-				rs = DataBaseConnect.execute("select * from shipping where arrival_=" + id);
+			rs = DataBaseConnect.execute("select * from shipping where arrival_=" + id);
+			for (int i = 0; i < shipData.length; i++) {
 				if (rs.next()) {
 					String strProduct_Name = null;
 					ResultSet pdNameSet = DataBaseConnect
@@ -339,8 +355,9 @@ class storeGUI extends JFrame implements Runnable {
 						strProduct_Name = pdNameSet.getString("product_name");
 
 					// make row data
+					String shipped = rs.getBoolean("shipped") ? "Yes" : "No";
 					Object[] tmpdata = { rs.getString("starting_"), rs.getString("product_id"), strProduct_Name,
-							rs.getInt("amount"), rs.getDouble("cost") };
+							rs.getInt("amount"), rs.getDouble("cost"), shipped };
 					shipData[i] = tmpdata;
 				}
 			}
@@ -384,70 +401,29 @@ class storeGUI extends JFrame implements Runnable {
 	public DefaultTableModel getTransModel() {
 		return transModel;
 	}
+	public Object[][] getOrderData() {
+		return orderData;
+	}
+
+	public DefaultTableModel getOrderModel() {
+		return orderModel;
+	}
+
+	public String[] getOrderColumnNames() {
+		return orderColumnNames;
+	}
+
+	public void setOrderData(Object[][] orderData) {
+		this.orderData = orderData;
+	}
 }
 
 public class Store extends Thread { // super class for warehouse and store
-	// class for stock
-	private class Stock {
-		private String name;
-		private int remain; // stock(remain)
-		private int max; // max capacity
-		private int min; // min quantity
-		/* field ends */
-
-		public Stock(String name, int remain, int max, int min) { // Stock
-																	// constructor
-			this.name = name;
-			this.remain = remain;
-			this.max = max;
-			this.min = min;
-		}
-
-		public void setRemain(int remain) { // edit stock
-			this.remain = remain;
-		}
-
-		public void setMax(int max) { // edit max capacity
-			this.max = max;
-		}
-
-		public void setMin(int min) { // edit min quantity
-			this.min = min;
-		}
-	}
-
-	// inner order class
-	private class Order {
-		private String warehouseName; // warehouse name
-		private String name; // product name
-		private int quantity; // quantity
-		private int cost; // cost
-		private boolean isSent; // state of sending
-		// private boolean isReceived;
-
-		public void setSent(boolean isSent) { // edit state of sending
-			this.isSent = isSent;
-		}
-
-		public Order(String warename, String name, int quantity, int cost, boolean issent) { // Order
-
-			this.warehouseName = warename;
-			this.name = name;
-			this.quantity = quantity;
-			this.cost = cost;
-			this.isSent = false;
-			// this.isReceived = false;
-		}
-	}
-
+	
 	/* field starts */
-	private double x, y; // coordinate
 	private String id; // inherent number
 	private String password;
-	private String name;
 	private storeGUI frame;
-	private ArrayList<Stock> stocks = new ArrayList<Stock>(); // stock ArrayList
-	private ArrayList<Order> orders = new ArrayList<Order>(); // order ArrayList
 	private Socket socket; // socket for connecting server
 	private BufferedReader in; // in stream for communicating with server
 	private PrintWriter out; // out stream
@@ -490,7 +466,7 @@ public class Store extends Thread { // super class for warehouse and store
 			try {
 				command = in.readLine(); // ream command from server
 				System.out.println(command);
-				if (command.startsWith("E") || command.startsWith("MX") || command.startsWith("MN"))
+				if (command.startsWith("E") || command.startsWith("MX") || command.startsWith("MN")) {
 					if (kind == 2) {
 						storeForm.setStockData(storeForm.getInventoryData(storeForm.getStockRows()));
 						storeForm.getStockModel().setDataVector(storeForm.getStockData(),
@@ -500,9 +476,37 @@ public class Store extends Thread { // super class for warehouse and store
 						warehouseForm.getStockModel().setDataVector(warehouseForm.getStockData(),
 								warehouseForm.getStockColumnNames());
 					}
-				else if (command.startsWith("O") || command.startsWith("CO")) {
+				} else if (command.startsWith("B")) {
+					if (kind == 2) {
+						storeForm.setTransData(storeForm.getOrderingData());
+						storeForm.getTransModel().setDataVector(storeForm.getTransData(),
+								storeForm.getTransColumnNames());
+						storeForm.setOrderData(storeForm.getShippingData());
+						storeForm.getOrderModel().setDataVector(storeForm.getOrderData(),
+								storeForm.getOrderColumnNames());
+					} else {
+						warehouseForm.setSendData(warehouseForm.getSendingData());
+						warehouseForm.getSendModel().setDataVector(warehouseForm.getSendData(),
+								warehouseForm.getSendColumnNames());
+					}
+				} else if (command.startsWith("O") || command.startsWith("CO")) {
 					storeForm.setTransData(storeForm.getOrderingData());
 					storeForm.getTransModel().setDataVector(storeForm.getTransData(), storeForm.getTransColumnNames());
+				} else if (command.startsWith("S")) {
+					if (kind == 2) {
+						storeForm.setOrderData(storeForm.getShippingData());
+						storeForm.getOrderModel().setDataVector(storeForm.getOrderData(),
+								storeForm.getOrderColumnNames());
+					} else {
+						warehouseForm.setSendData(warehouseForm.getSendingData());
+						warehouseForm.getSendModel().setDataVector(warehouseForm.getSendData(),
+								warehouseForm.getSendColumnNames());
+					}
+				} else if (command.startsWith("R")) {
+					storeForm.setStockData(storeForm.getInventoryData(storeForm.getStockRows()));
+					storeForm.getStockModel().setDataVector(storeForm.getStockData(), storeForm.getStockColumnNames());
+					storeForm.setOrderData(storeForm.getShippingData());
+					storeForm.getOrderModel().setDataVector(storeForm.getOrderData(), storeForm.getOrderColumnNames());
 				} else if (command.startsWith("Verifying"))
 					out.println(this.id);
 				else if (command.startsWith("Accepted")) {

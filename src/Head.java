@@ -42,8 +42,10 @@ class warehouseheadGUI extends JFrame implements Runnable {
 	private ResultSet rs;
 	private final String[] columnNames_request = { "Order_no", "Store_ID", "Ordering_Date" };
 	private Object[][] requestData;
+	private Head form;
 
-	public warehouseheadGUI() throws SQLException {
+	public warehouseheadGUI(Head form) throws SQLException {
+		this.form = form;
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		setSize(822, 479);
 		setTitle("Head Client");
@@ -173,10 +175,31 @@ class warehouseheadGUI extends JFrame implements Runnable {
 
 		btnEachProcess = new JButton("Process Selected");
 		btnEachProcess.setBounds(615, 407, 150, 23);
+		btnEachProcess.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent arg0) {
+				int rows[] = tableRequest.getSelectedRows();
+				for (int i = 0; i < rows.length; i++) {
+					String orderNO = (String) tableRequest.getValueAt(rows[i], 0);
+					form.getOut().println("B;" + orderNO + ";");
+				}
+			}
+		});
 		contentPane.add(btnEachProcess);
 
 		btnAllProcess = new JButton("Process All");
 		btnAllProcess.setBounds(440, 407, 150, 23);
+		btnAllProcess.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				int rows = tableRequest.getRowCount();
+				for (int i = 0; i < rows; i++) {
+					String orderNO = (String) tableRequest.getValueAt(i, 0);
+					form.getOut().println("B;" + orderNO + ";");
+				}
+			}
+
+		});
 		contentPane.add(btnAllProcess);
 		// end of making request table
 	}
@@ -206,39 +229,38 @@ class warehouseheadGUI extends JFrame implements Runnable {
 			lbTime.setText("Current time : " + new Date().toString());
 		}
 	}
+	
+	// getters and setters
+	public Object[][] getRequestData() {
+		return requestData;
+	}
+
+	public void setRequestData(Object[][] requestData) {
+		this.requestData = requestData;
+	}
+
+	public DefaultTableModel getRequestModel() {
+		return requestModel;
+	}
+	public String[] getColumnNames_request() {
+		return columnNames_request;
+	}
 }
 
 public class Head extends Thread {
-	// internal request class
-	private class Request {
-		private String storeName;
-		private String stockName;
-		private int amount;
-		private boolean confirmed; // check order receiving
-		private String confirmTime; // Save time log at confirmed
-
-		public Request(String storeName, String stockName, int amount, boolean confirmed) {
-			this.storeName = storeName;
-			this.stockName = stockName;
-			this.amount = amount;
-			this.confirmed = confirmed;
-		}
-	}
 
 	/* Field start */
 	private String id = "admin";
 	private String password;
 	private warehouseheadGUI frame;
-	private Object[][] warehouses; // array of array which is used to show the
-									// list of warehouses.
-	private Object[][] stores; // array of array which is used to show the list
-								// of stores.
-	private ArrayList<Request> requests = new ArrayList<Request>(); // order
-																	// Arraylist
 	private Socket socket; // socket for connecting server
 	private BufferedReader in; // in stream for communicate with server
 	private PrintWriter out; // out stream
-	private BufferedReader fin; // File input stream
+	private warehouseheadGUI form;
+
+	public PrintWriter getOut() {
+		return out;
+	}
 	/* End of field */
 
 	/* head constructor */
@@ -248,7 +270,7 @@ public class Head extends Thread {
 		// create stream at set socket
 		in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
 		out = new PrintWriter(socket.getOutputStream(), true);
-		Thread gui = new Thread(new warehouseheadGUI());
+		Thread gui = new Thread(form = new warehouseheadGUI(this));
 		this.start();
 		gui.start();
 	}
@@ -302,7 +324,7 @@ public class Head extends Thread {
 			if (queries[i] != null)
 				DataBaseConnect.update(queries[i]);
 	}
-	
+
 	public static void calculateNewWarehouse(String warehouseID) throws IOException, SQLException {
 		ResultSet rs;
 		double storeLa = 0, storeLo = 0, wareLa = 0, wareLo = 0;
@@ -361,13 +383,19 @@ public class Head extends Thread {
 			try {
 				command = in.readLine(); // read command from server
 				System.out.println(command);
-				if (command.startsWith("Verifying"))
+				if (command.startsWith("B") || command.startsWith("O") || command.startsWith("CO")) {
+					form.setRequestData(form.getRequestingData());
+					form.getRequestModel().setDataVector(form.getRequestData(), form.getColumnNames_request());
+				} else if (command.startsWith("Verifying"))
 					out.println(this.id);
-				if (command.startsWith("Accepted")) {
+				else if (command.startsWith("Accepted")) {
 					// popup of login success
 					JOptionPane.showMessageDialog(frame, "You are connected to server.");
 				}
 			} catch (IOException e) {
+				e.printStackTrace();
+			} catch (SQLException e) {
+				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
 		}
