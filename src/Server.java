@@ -171,6 +171,7 @@ public class Server {
 						break;
 
 					case "R": // received
+						isStore = true;
 						// delete the shipping info
 						DataBaseConnect.update("delete from shipping where arrival_=" + commands[1] + " and product_id="
 								+ commands[2] + " and amount=" + commands[3]);
@@ -186,12 +187,13 @@ public class Server {
 							int amount = qtySet.getInt("amount");
 							DataBaseConnect.update(makeLog(commands[2], commands[1], amount + "", isStore));
 						}
-						
+
 						for (PrintWriter writer : writers)
 							writer.println(input + "has completed");
 						break;
 
 					case "S": // shipped
+						isStore = false;
 						// update the order 'shipped = true'
 						DataBaseConnect.update("update shipping set shipped=" + 1 + " where starting_=" + commands[1]
 								+ " and arrival_=" + commands[2] + " and product_id=" + commands[3] + " and amount="
@@ -208,7 +210,7 @@ public class Server {
 							int amount = qtySet.getInt("amount");
 							DataBaseConnect.update(makeLog(commands[3], commands[1], amount + "", isStore));
 						}
-						
+
 						for (PrintWriter writer : writers)
 							writer.println(input + "has completed");
 						break;
@@ -227,7 +229,7 @@ public class Server {
 				try {
 					socket.close();
 				} catch (IOException e) {
-					System.out.println(id+" has logged off");
+					System.out.println(id + " has logged off");
 				}
 			}
 		}
@@ -236,7 +238,7 @@ public class Server {
 			String logQuery = null;
 			int logNo = 1;
 			int boolNum = isStore ? 1 : 0;
-			rs = DataBaseConnect.execute("select * from ordering");
+			rs = DataBaseConnect.execute("select * from log");
 
 			// get max value of log_number
 			while (rs.next())
