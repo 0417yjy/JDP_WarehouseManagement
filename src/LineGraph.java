@@ -154,7 +154,7 @@ public class LineGraph extends Panel implements ActionListener, MouseMotionListe
 					int value = 0;
 					Date logDateObj = rs.getDate("change_date");
 					String dateStr = dateFormat.format(logDateObj);
-					ResultSet tmpRs = rs = DataBaseConnect.execute("select * from log where member_id=" + id
+					ResultSet tmpRs = DataBaseConnect.execute("select * from log where member_id=" + id
 							+ " and product_id=" + product_ids.get(i) + " and change_date='" + dateStr + "'");
 					// get this date's recent log
 					while (tmpRs.next())
