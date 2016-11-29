@@ -18,6 +18,7 @@ import java.awt.Panel;
 import java.awt.Point;
 import java.awt.RenderingHints;
 import java.awt.Stroke;
+import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
@@ -226,7 +227,7 @@ public class LineGraph extends Panel implements ActionListener, MouseMotionListe
 					int value = 0;
 					Date logDateObj = rs.getDate("change_date");
 					String dateStr = dateFormat.format(logDateObj);
-					ResultSet tmpRs = rs = DataBaseConnect
+					ResultSet tmpRs = DataBaseConnect
 							.execute("select * from log where member_id=" + id + " and product_id=" + product_ids.get(i)
 									+ " and change_date='" + dateStr + "' order by log_no");
 					// get this date's recent log
@@ -253,8 +254,10 @@ public class LineGraph extends Panel implements ActionListener, MouseMotionListe
 
 		// create a frame
 		JFrame frame = new JFrame("Chart");
+		Dimension dim = Toolkit.getDefaultToolkit().getScreenSize();
 		frame.getContentPane().add(this);
-		frame.setLocationRelativeTo(null);
+		//frame.setLocationRelativeTo(null);
+		frame.setLocation((dim.width / 2) - (this.width / 2), (dim.height / 2) - (this.height / 2));
 		frame.setResizable(false);
 		frame.setVisible(true);
 		frame.pack();
@@ -440,12 +443,13 @@ public class LineGraph extends Panel implements ActionListener, MouseMotionListe
 		// draw tooltip when mouse hover the points
 		if (hoveringPoint) {
 			g2.setColor(Color.YELLOW);
-			g2.fillRect(mousePoint.x, mousePoint.y - 30, 80, 30);
+
+			g2.fillRect(mousePoint.x - 40, mousePoint.y - 32, 80, 30);
 			g2.setFont(new Font("Serif", Font.PLAIN, 10));
 			g2.setColor(Color.black);
-			g2.drawString("Product_ID : " + product_ids.get(arrayIndex), mousePoint.x, mousePoint.y - 21);
-			g2.drawString("Value : " + values.get(arrayIndex).get(pointIndex), mousePoint.x, mousePoint.y - 11);
-			g2.drawString("Date : " + dateFormat.format(dates.get(pointIndex)), mousePoint.x, mousePoint.y - 1);
+			g2.drawString("Product_ID : " + product_ids.get(arrayIndex), mousePoint.x - 40, mousePoint.y - 23);
+			g2.drawString("Value : " + values.get(arrayIndex).get(pointIndex), mousePoint.x - 40, mousePoint.y - 13);
+			g2.drawString("Date : " + dateFormat.format(dates.get(pointIndex)), mousePoint.x - 40, mousePoint.y - 3);
 		}
 	}
 
@@ -515,7 +519,7 @@ public class LineGraph extends Panel implements ActionListener, MouseMotionListe
 	}
 
 	@SuppressWarnings("deprecation")
-	private void generateSheet() {
+	private void generateSheet() { // generate .xls file
 		// Excel file object
 		WritableWorkbook workbook = null;
 
@@ -528,7 +532,7 @@ public class LineGraph extends Panel implements ActionListener, MouseMotionListe
 
 		// File to be saved
 		Format dateFormat = new SimpleDateFormat("yyyy-MM-dd");
-		String filename = dateFormat.format(dates.get(dates.size() - 1))+"_"+id;
+		String filename = dateFormat.format(dates.get(dates.size() - 1)) + "_" + id;
 		File file = new File(filename + ".xls"); // file name is
 													// Today(yyyy-MM-dd.xls)
 

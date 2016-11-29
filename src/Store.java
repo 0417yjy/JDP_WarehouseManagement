@@ -214,11 +214,14 @@ class storeGUI extends JFrame implements Runnable {
 			public void actionPerformed(ActionEvent arg0) {
 				int rows[] = orderTable.getSelectedRows();
 				for (int i = 0; i < rows.length; i++) {
-					String command = "R;";
-					command += id + ";"; // warehouse_id
-					command += orderTable.getValueAt(rows[i], 1) + ";"; // product_id
-					command += orderTable.getValueAt(rows[i], 3) + ";"; // amount
-					form.getOut().println(command);
+					//if the products are shipped
+					if (orderTable.getValueAt(rows[i], 5).equals("Yes")) {
+						String command = "R;";
+						command += id + ";"; // warehouse_id
+						command += orderTable.getValueAt(rows[i], 1) + ";"; // product_id
+						command += orderTable.getValueAt(rows[i], 3) + ";"; // amount
+						form.getOut().println(command);
+					}
 				}
 			}
 

@@ -12,8 +12,6 @@ import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.BufferedReader;
-import java.io.FileReader;
-import java.io.IOException;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
@@ -36,7 +34,6 @@ public class Login extends JFrame implements ActionListener {
 	private JPasswordField passwordField;
 	private JButton btnProceed;
 	private JLabel lblUserAuthorisationRequired;
-	// private boolean isFileExist; //
 	private String inputId; // id and pw(user inserted)
 	private String inputPw;
 	private String tmpId; // temporarily save id and pw
@@ -51,24 +48,6 @@ public class Login extends JFrame implements ActionListener {
 	 */
 
 	public static void main(String[] args) throws SQLException {
-		// ArrayList<ArrayList<Integer>> tmpintarr = new
-		// ArrayList<ArrayList<Integer>>();
-		// ArrayList<ArrayList<Date>> tmpdate = new
-		// ArrayList<ArrayList<Date>>();
-		// Random random = new Random();
-		// int maxDataPoints = 30;
-		// int maxScore = 100;
-		// for (int j = 0; j < 1; j++) {
-		// ArrayList<Integer> intarr = new ArrayList<Integer>();
-		// ArrayList<Date> datearr = new ArrayList<Date>();
-		// for (int i = 0; i < maxDataPoints; i++) {
-		// intarr.add((int) (random.nextDouble() * maxScore));
-		// datearr.add(new Date());
-		// }
-		// tmpintarr.add(intarr);
-		// tmpdate.add(datearr);
-		// }
-		// new LineGraph(tmpintarr, tmpdate);
 		DataBaseConnect.connect("1234");
 		DataBaseConnect.execute("use wms");
 		
@@ -87,7 +66,6 @@ public class Login extends JFrame implements ActionListener {
 //			Head.calculateNewStore("2011");
 //			Head.calculateNewStore("2012");
 //		} catch (IOException e1) {
-//			// TODO Auto-generated catch block
 //			e1.printStackTrace();
 //		}
 		
@@ -108,7 +86,7 @@ public class Login extends JFrame implements ActionListener {
 	 */
 	public Login() {
 		Dimension dim = Toolkit.getDefaultToolkit().getScreenSize();
-
+		
 		setResizable(false);
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		setLocation(dim.width / 2 - this.getSize().width / 2, dim.height / 2 - this.getSize().height / 2);
