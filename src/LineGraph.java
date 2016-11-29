@@ -528,7 +528,7 @@ public class LineGraph extends Panel implements ActionListener, MouseMotionListe
 
 		// File to be saved
 		Format dateFormat = new SimpleDateFormat("yyyy-MM-dd");
-		String filename = dateFormat.format(dates.get(dates.size() - 1));
+		String filename = dateFormat.format(dates.get(dates.size() - 1))+"_"+id;
 		File file = new File(filename + ".xls"); // file name is
 													// Today(yyyy-MM-dd.xls)
 
