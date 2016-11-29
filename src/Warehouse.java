@@ -1,9 +1,12 @@
-
 /*
  *filename : Warehouse.java
  *author : team Tic Toc
  *since : 2016.10.05
- *purpose/function : 
+ *purpose/function : Users can see the condition of his or her warehouse.
+ *In manage inventory tab, manager can see each products' maximum capacity, minimum quantity that must be secured and current quantity.
+ *Manager can edit inventory details.
+ *In order management tab, manager will make orders to head.
+ *In transportation management, manager can manage the order, from warehouse to stores.	
  *
  */
 import java.awt.event.ActionEvent;

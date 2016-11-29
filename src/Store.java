@@ -1,10 +1,11 @@
-
 /*
  *filename : Store.java
  *author : team Tic Toc
  *since : 2016.10.04
- *purpose/function : 
- *
+ *purpose/function : Managers can see their stores' condition.
+ *In manage inventory tab, manager can see each products' maximum capacity, minimum quantity that must be secured and current quantity.
+ *Manager can edit inventory details.
+ *In order management tab, manager will make orders also send a receiving condition to head and warehouse.
  */
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;

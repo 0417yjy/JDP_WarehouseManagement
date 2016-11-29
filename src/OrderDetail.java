@@ -1,8 +1,8 @@
 /*
- *filename : NewOrder.java
+ *filename : OrderDetail.java
  *author : team Tic Toc
  *since : 2016.11.26
- *purpose/function : 
+ *purpose/function : This class shows orders in detail, only for store managers.
  *
  */
 import java.awt.event.ActionEvent;

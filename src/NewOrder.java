@@ -1,9 +1,8 @@
-
 /*
  *filename : NewOrder.java
  *author : team Tic Toc
  *since : 2016.11.26
- *purpose/function : 
+ *purpose/function : Make a new order, only for store managers.
  *
  */
 import java.awt.event.ActionEvent;

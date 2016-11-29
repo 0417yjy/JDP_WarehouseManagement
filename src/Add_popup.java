@@ -2,7 +2,7 @@
  *filename : Add_popup.java
  *author : team Tic Toc
  *since : 2016.11.07
- *purpose/function : Popup window when pressing button.
+ *purpose/function : Popup window when pressing button. Users can see orders, orders lists, shipping and condition of each shipping.
  *
  */
 import java.awt.Font;

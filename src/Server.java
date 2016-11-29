@@ -1,3 +1,10 @@
+/*
+ *filename : Server.java
+ *author : team Tic Toc
+ *since : 2016.10.17
+ *purpose/function : Make a local server.
+ *
+ */
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;

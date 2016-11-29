@@ -2,7 +2,10 @@
  *filename : Head.java
  *author : team Tic Toc
  *since : 2016.10.10
- *purpose/function : Show Head GUI.
+ *purpose/function : Show Head GUI. Managers can see not only information of warehouse and stores but also their details.
+ *Graph is shown this part and will be changed when quantity is changed. Managers can extract Excel files.
+ *Information is composed of Id, latitude and longitude which are used for calculating routes and address.
+ *Requests are shown by order of time. Users will approve the orders.
  *
  */
 import java.awt.Font;
