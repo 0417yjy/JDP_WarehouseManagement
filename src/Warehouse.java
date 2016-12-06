@@ -41,7 +41,6 @@ class warehouseGUI extends JFrame implements Runnable {
 			"Maintaining minimum quantity" };
 	private final String[] sendColumnNames = { "Store_ID", "Address", "Product_ID", "Product_Name", "Amount" };
 	private Object[][] stockData, sendData;
-	private int stockRows, sendRows;
 
 	public Object[][] getSendData() {
 		return sendData;
@@ -81,20 +80,17 @@ class warehouseGUI extends JFrame implements Runnable {
 		tabbedPane.addTab("Manage inventory", null, stockPanel, null);
 		stockPanel.setLayout(null);
 
-		rs = DataBaseConnect.execute("select count(*) from warehouse_inventory where warehouse_id='" + id + "'");
-		if (rs.next()) {
-			stockRows = rs.getInt(1);
-			stockData = getInventoryData(stockRows);
-			stockModel = new DefaultTableModel(stockData, stockColumnNames);
-			stockTable = new JTable(stockModel) {
-				private static final long serialVersionUID = 1L;
+		stockData = getInventoryData();
+		stockModel = new DefaultTableModel(stockData, stockColumnNames);
+		stockTable = new JTable(stockModel) {
+			private static final long serialVersionUID = 1L;
 
-				@Override
-				public boolean isCellEditable(int row, int column) {
-					return false;
-				}
-			};
-		}
+			@Override
+			public boolean isCellEditable(int row, int column) {
+				return false;
+			}
+		};
+
 		stockTable.setFocusable(false);
 		stockTable.setRowSelectionAllowed(true);
 		stockScroll = new JScrollPane(stockTable);
@@ -102,8 +98,33 @@ class warehouseGUI extends JFrame implements Runnable {
 
 		stockPanel.add(stockScroll);
 
+		JButton btnAddProduct = new JButton("Add product");
+		btnAddProduct.setBounds(7, 275, 116, 23);
+		btnAddProduct.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent arg0) {
+				try {
+					new AddProduct() {
+						@Override
+						void makeCommand() {
+							String command = "P;";
+							command += id + ";";
+							command += this.getProductBox().getSelectedItem() + ";";
+							command += this.getTextField().getText() + ";";
+							command += this.getTextField_1().getText() + ";";
+							command += this.getTextField_2().getText() + ";";
+							form.getOut().println(command);
+						}
+					};
+				} catch (SQLException e) {
+					e.printStackTrace();
+				}
+			}
+		});
+		stockPanel.add(btnAddProduct);
+
 		JButton btnModifyStock = new JButton("Edit inventory");
-		btnModifyStock.setBounds(80, 275, 116, 23);
+		btnModifyStock.setBounds(130, 275, 116, 23);
 		btnModifyStock.addActionListener(new ActionListener() {
 
 			@Override
@@ -125,7 +146,7 @@ class warehouseGUI extends JFrame implements Runnable {
 		stockPanel.add(btnModifyStock);
 
 		JButton btnModifyMax = new JButton("Edit Max Capacity");
-		btnModifyMax.setBounds(230, 275, 173, 23);
+		btnModifyMax.setBounds(280, 275, 173, 23);
 		btnModifyMax.addActionListener(new ActionListener() {
 
 			@Override
@@ -147,7 +168,7 @@ class warehouseGUI extends JFrame implements Runnable {
 		stockPanel.add(btnModifyMax);
 
 		JButton btnModifyMin = new JButton("Edit Min Stock Amount");
-		btnModifyMin.setBounds(410, 275, 173, 23);
+		btnModifyMin.setBounds(460, 275, 173, 23);
 		btnModifyMin.addActionListener(new ActionListener() {
 
 			@Override
@@ -216,8 +237,12 @@ class warehouseGUI extends JFrame implements Runnable {
 		}
 	}
 
-	public Object[][] getInventoryData(int columns) throws SQLException {
-		Object[][] stockData = new Object[columns][];
+	public Object[][] getInventoryData() throws SQLException {
+		int rows = 0;
+		rs = DataBaseConnect.execute("select count(*) from warehouse_inventory where warehouse_id='" + id + "'");
+		if (rs.next())
+			rows = rs.getInt(1);
+		Object[][] stockData = new Object[rows][];
 
 		rs = DataBaseConnect.execute("select * from warehouse_inventory where warehouse_id='" + id + "'");
 		for (int i = 0; i < stockData.length; i++) {
@@ -292,13 +317,11 @@ class warehouseGUI extends JFrame implements Runnable {
 		return sendColumnNames;
 	}
 
-	public int getStockRows() {
-		return stockRows;
-	}
 }
 
 public class Warehouse extends Store {
-	public Warehouse(String id, String password, int kind) throws Exception { // Warehouse Constructor
+	public Warehouse(String id, String password, int kind) throws Exception { // Warehouse
+																				// Constructor
 		super(id, password, kind);
 	}
 }

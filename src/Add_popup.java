@@ -67,6 +67,9 @@ public abstract class Add_popup extends JFrame implements ActionListener {
 		btnNewButton_1.addActionListener(this);
 	}
 
+	public Add_popup() {
+	}
+
 	@Override
 	public void actionPerformed(ActionEvent e) {
 		if(e.getSource()==btnNewButton_1) //if the pressed button is "Cancel"

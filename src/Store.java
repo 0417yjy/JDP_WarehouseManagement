@@ -49,7 +49,6 @@ class storeGUI extends JFrame implements Runnable {
 	private final String[] orderColumnNames = { "Departure_ID", "Product_ID", "Product_Name", "Amount", "Cost",
 			"Shipped" };
 	private Object[][] stockData, transData, orderData;
-	private int stockRows;
 
 	/**
 	 * Create the frame.
@@ -83,20 +82,17 @@ class storeGUI extends JFrame implements Runnable {
 		tabbedPane.addTab("Manage inventory", null, stockPanel, null);
 		stockPanel.setLayout(null);
 
-		rs = DataBaseConnect.execute("select count(*) from store_inventory where store_id='" + id + "'");
-		if (rs.next()) {
-			stockRows = rs.getInt(1);
-			stockData = getInventoryData(stockRows);
-			stockModel = new DefaultTableModel(stockData, stockColumnNames);
-			stockTable = new JTable(stockModel) {
-				private static final long serialVersionUID = 1L;
+		stockData = getInventoryData();
+		stockModel = new DefaultTableModel(stockData, stockColumnNames);
+		stockTable = new JTable(stockModel) {
+			private static final long serialVersionUID = 1L;
 
-				@Override
-				public boolean isCellEditable(int row, int column) {
-					return false;
-				}
-			};
-		}
+			@Override
+			public boolean isCellEditable(int row, int column) {
+				return false;
+			}
+		};
+
 		stockTable.setFocusable(false);
 		stockTable.setRowSelectionAllowed(true);
 		stockScroll = new JScrollPane(stockTable);
@@ -104,8 +100,33 @@ class storeGUI extends JFrame implements Runnable {
 
 		stockPanel.add(stockScroll);
 
+		JButton btnAddProduct = new JButton("Add product");
+		btnAddProduct.setBounds(7, 275, 116, 23);
+		btnAddProduct.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent arg0) {
+				try {
+					new AddProduct() {
+						@Override
+						void makeCommand() {
+							String command = "P;";
+							command += id + ";";
+							command += this.getProductBox().getSelectedItem() + ";";
+							command += this.getTextField().getText() + ";";
+							command += this.getTextField_1().getText() + ";";
+							command += this.getTextField_2().getText() + ";";
+							form.getOut().println(command);
+						}
+					};
+				} catch (SQLException e) {
+					e.printStackTrace();
+				}
+			}
+		});
+		stockPanel.add(btnAddProduct);
+
 		JButton btnModifyStock = new JButton("Edit inventory");
-		btnModifyStock.setBounds(80, 275, 116, 23);
+		btnModifyStock.setBounds(157, 275, 116, 23);
 		btnModifyStock.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent arg0) {
@@ -126,7 +147,7 @@ class storeGUI extends JFrame implements Runnable {
 		stockPanel.add(btnModifyStock);
 
 		JButton btnModifyMax = new JButton("Edit Max Capacity");
-		btnModifyMax.setBounds(230, 275, 173, 23);
+		btnModifyMax.setBounds(280, 275, 153, 23);
 		btnModifyMax.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent arg0) {
@@ -140,7 +161,6 @@ class storeGUI extends JFrame implements Runnable {
 						command += this.textField.getText() + ";";
 						command += this.textField_1.getText() + ";";
 						form.getOut().println(command);
-						stockTable.repaint();
 					}
 				};
 			}
@@ -148,10 +168,11 @@ class storeGUI extends JFrame implements Runnable {
 		stockPanel.add(btnModifyMax);
 
 		JButton btnModifyMin = new JButton("Edit Min Stock Amount");
-		btnModifyMin.setBounds(410, 275, 173, 23);
+		btnModifyMin.setBounds(440, 275, 173, 23);
 		btnModifyMin.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent arg0) {
+
 				new Add_popup("Edit Min Quantity", "Product ID", "Min Quantity") {
 					private static final long serialVersionUID = 1L;
 
@@ -214,7 +235,7 @@ class storeGUI extends JFrame implements Runnable {
 			public void actionPerformed(ActionEvent arg0) {
 				int rows[] = orderTable.getSelectedRows();
 				for (int i = 0; i < rows.length; i++) {
-					//if the products are shipped
+					// if the products are shipped
 					if (orderTable.getValueAt(rows[i], 5).equals("Yes")) {
 						String command = "R;";
 						command += id + ";"; // warehouse_id
@@ -299,7 +320,12 @@ class storeGUI extends JFrame implements Runnable {
 		}
 	}
 
-	public Object[][] getInventoryData(int rows) throws SQLException {
+	public Object[][] getInventoryData() throws SQLException {
+		int rows = 0;
+		rs = DataBaseConnect.execute("select count(*) from store_inventory where store_id='" + id + "'");
+		if (rs.next())
+			rows = rs.getInt(1);
+
 		Object[][] stockData = new Object[rows][];
 		rs = DataBaseConnect.execute("select * from store_inventory where store_id='" + id + "'");
 		for (int i = 0; i < rows; i++) {
@@ -393,10 +419,6 @@ class storeGUI extends JFrame implements Runnable {
 		return transData;
 	}
 
-	public int getStockRows() {
-		return stockRows;
-	}
-
 	public DefaultTableModel getStockModel() {
 		return stockModel;
 	}
@@ -470,13 +492,14 @@ public class Store extends Thread { // super class for warehouse and store
 			try {
 				command = in.readLine(); // ream command from server
 				System.out.println(command);
-				if (command.startsWith("E") || command.startsWith("MX") || command.startsWith("MN")) {
+				if (command.startsWith("E") || command.startsWith("MX") || command.startsWith("MN")
+						|| command.startsWith("P")) {
 					if (kind == 2) {
-						storeForm.setStockData(storeForm.getInventoryData(storeForm.getStockRows()));
+						storeForm.setStockData(storeForm.getInventoryData());
 						storeForm.getStockModel().setDataVector(storeForm.getStockData(),
 								storeForm.getStockColumnNames());
 					} else {
-						warehouseForm.setStockData(warehouseForm.getInventoryData(warehouseForm.getStockRows()));
+						warehouseForm.setStockData(warehouseForm.getInventoryData());
 						warehouseForm.getStockModel().setDataVector(warehouseForm.getStockData(),
 								warehouseForm.getStockColumnNames());
 					}
@@ -505,7 +528,7 @@ public class Store extends Thread { // super class for warehouse and store
 						storeForm.getOrderModel().setDataVector(storeForm.getOrderData(),
 								storeForm.getOrderColumnNames());
 					} else {
-						warehouseForm.setStockData(warehouseForm.getInventoryData(warehouseForm.getStockRows()));
+						warehouseForm.setStockData(warehouseForm.getInventoryData());
 						warehouseForm.getStockModel().setDataVector(warehouseForm.getStockData(),
 								warehouseForm.getStockColumnNames());
 						warehouseForm.setSendData(warehouseForm.getSendingData());
@@ -514,7 +537,7 @@ public class Store extends Thread { // super class for warehouse and store
 					}
 				} else if (command.startsWith("R")) {
 					if (kind == 2) {
-						storeForm.setStockData(storeForm.getInventoryData(storeForm.getStockRows()));
+						storeForm.setStockData(storeForm.getInventoryData());
 						storeForm.getStockModel().setDataVector(storeForm.getStockData(),
 								storeForm.getStockColumnNames());
 						storeForm.setOrderData(storeForm.getShippingData());

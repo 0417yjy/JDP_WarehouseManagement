@@ -71,6 +71,10 @@ public abstract class NewOrder extends JFrame implements ActionListener {
 		contentPane.add(btnCancel);
 	}
 
+	public NewOrder() {
+		// TODO Auto-generated constructor stub
+	}
+
 	public ArrayList<Object[]> getCommandData() {
 		return commandData;
 	}

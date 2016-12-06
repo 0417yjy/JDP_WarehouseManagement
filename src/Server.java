@@ -21,7 +21,6 @@ public class Server extends Thread {
 
 	// Server Constructor
 	public Server() throws Exception {
-		this.start();
 		ServerSocket ss = new ServerSocket(9001); // port number is 9001
 		System.out.println("The server has been hosted.");
 		try {
@@ -33,27 +32,7 @@ public class Server extends Thread {
 			ss.close();
 		}
 	}
-
-	public void run() {
-		ResultSet rs;
-		Date date = null;
-		while (true) {
-			rs = DataBaseConnect.execute("select * from log");
-			try {
-				if (rs.next()) {
-					date = rs.getDate("change_date");
-				}
-			} catch (SQLException e) {
-				e.printStackTrace();
-			}
-			if (date != null) {
-				int todayMonth = new Date(System.currentTimeMillis()).getMonth();
-				if (todayMonth != date.getMonth())
-					DataBaseConnect.update("delete from log");
-			}
-		}
-	}
-
+	
 	private static class Handler extends Thread { // Handler class
 		private String id;
 		private Socket socket;
@@ -265,12 +244,16 @@ public class Server extends Thread {
 										"Cannot delete the warehouse: There are unprocessed shipping orders");
 							break;
 						}
+						// delete inventory
+						DataBaseConnect.update("delete from store_inventory where store_id='"+commands[1]+"'");
 						// delete distances
 						DataBaseConnect.update("delete from distance where store_id='" + commands[1] + "'");
 						// delete store
 						DataBaseConnect.update("delete from store where store_id='" + commands[1] + "'");
 						// delete account
 						DataBaseConnect.update("delete from identification where id='" + commands[1] + "'");
+						// delete log
+						DataBaseConnect.update("delete from log where Member_ID='"+commands[1]+"'");
 						break;
 
 					case "DW": // delete a warehouse
@@ -285,12 +268,23 @@ public class Server extends Thread {
 								break;
 							}
 						}
+						// delete inventory
+						DataBaseConnect.update("delete from warehouse_inventory where warehouse_id='"+commands[1]+"'");
 						// delete distances
 						DataBaseConnect.update("delete from distance where warehouse_id='" + commands[1] + "'");
 						// delete store
 						DataBaseConnect.update("delete from warehouse where warehouse_id='" + commands[1] + "'");
 						// delete account
 						DataBaseConnect.update("delete from identification where id='" + commands[1] + "'");
+						// delete log
+						DataBaseConnect.update("delete from log where Member_ID='"+commands[1]+"'");
+						break;
+						
+					case "P": // add a product
+						if(commands[1].startsWith("1")) //if the member is warehouse
+							DataBaseConnect.update("insert into warehouse_inventory values ('"+commands[1]+"','"+commands[2]+"','"+commands[3]+"','"+commands[5]+"','"+commands[4]+"')");
+						else
+							DataBaseConnect.update("insert into store_inventory values ('"+commands[1]+"','"+commands[2]+"','"+commands[3]+"','"+commands[5]+"','"+commands[4]+"')");
 						break;
 					}
 					for (PrintWriter writer : writers)
