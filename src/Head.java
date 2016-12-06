@@ -35,13 +35,16 @@ class warehouseheadGUI extends JFrame implements Runnable {
 	private JTable tableWarehouse;
 	private JTable tableStore;
 	private JTable tableRequest;
-	private DefaultTableModel requestModel;
+	private DefaultTableModel requestModel, storeModel, warehouseModel;
 	public JLabel lbTime;
 	private JButton btnWarehouseDetail, btnStoreDetail;
 	private JButton btnEachProcess, btnAllProcess;
 	private ResultSet rs;
 	private final String[] columnNames_request = { "Order_no", "Store_ID", "Ordering_Date" };
-	private Object[][] requestData;
+	private final String[] columnNames_warehouse = { "Warehouse_ID", "Latitude", "Longitude", "Address" };
+	private final String[] columnNames_store = { "Store_ID", "Latitude", "Longitude", "Address" };
+	private Object[][] requestData, data_store, data_warehouse;
+
 	private Head form;
 
 	public warehouseheadGUI(Head form) throws SQLException {
@@ -98,7 +101,8 @@ class warehouseheadGUI extends JFrame implements Runnable {
 						String longitude = this.getLongitudeField().getText();
 						String owner = this.getOwnerField().getText();
 						String contact = this.getContactField().getText();
-						String command = "AW;"+id+";"+passwordStr+";"+address+";"+latitude+";"+longitude+";"+owner+";"+contact+";";
+						String command = "AW;" + id + ";" + passwordStr + ";" + address + ";" + latitude + ";"
+								+ longitude + ";" + owner + ";" + contact + ";";
 						form.getOut().println(command);
 					}
 				};
@@ -116,34 +120,24 @@ class warehouseheadGUI extends JFrame implements Runnable {
 						"Are you sure you want to delete warehouse:" + tableWarehouse.getValueAt(selectedrow, 0) + "?",
 						"Warning", JOptionPane.YES_NO_OPTION);
 				if (reply == JOptionPane.YES_OPTION) {
-					form.getOut().println("DW;"+tableWarehouse.getValueAt(selectedrow, 0)+";");
+					form.getOut().println("DW;" + tableWarehouse.getValueAt(selectedrow, 0) + ";");
 				}
 			}
 		});
 		btnWarehouseDelete.setBounds(250, 36, 80, 16);
 		contentPane.add(btnWarehouseDelete);
 
-		rs = DataBaseConnect.execute("select count(*) from warehouse");
+		data_warehouse = getWarehouseData();
+		warehouseModel = new DefaultTableModel(data_warehouse, columnNames_warehouse);
+		tableWarehouse = new JTable(warehouseModel) {
+			private static final long serialVersionUID = 1L;
 
-		String[] columnNames_warehouse = { "Warehouse_ID", "Latitude", "Longitude", "Address" };
-		if (rs.next()) {
-			Object[][] data_warehouse = new Object[rs.getInt(1)][];
-			rs = DataBaseConnect.execute("select * from warehouse");
-			for (int i = 0; i < data_warehouse.length; i++) {
-				if (rs.next()) {
-					Object[] tmpData = { rs.getString(1), rs.getDouble(2), rs.getDouble(3), rs.getString(4) };
-					data_warehouse[i] = tmpData;
-				}
+			@Override
+			public boolean isCellEditable(int row, int column) {
+				return false;
 			}
-			tableWarehouse = new JTable(data_warehouse, columnNames_warehouse) {
-				private static final long serialVersionUID = 1L;
+		};
 
-				@Override
-				public boolean isCellEditable(int row, int column) {
-					return false;
-				}
-			};
-		}
 		JScrollPane scrollWarehouse = new JScrollPane();
 		scrollWarehouse.setBounds(12, 62, 388, 121);
 		contentPane.add(scrollWarehouse);
@@ -156,26 +150,16 @@ class warehouseheadGUI extends JFrame implements Runnable {
 		lblStoreInfo.setBounds(425, 35, 59, 16);
 		contentPane.add(lblStoreInfo);
 
-		rs = DataBaseConnect.execute("select count(*) from store");
-		if (rs.next()) {
-			String[] columnNames_store = { "Store_ID", "Latitude", "Longitude", "Address" };
-			Object[][] data_store = new Object[rs.getInt(1)][];
-			rs = DataBaseConnect.execute("select * from store");
-			for (int i = 0; i < data_store.length; i++) {
-				if (rs.next()) {
-					Object[] tmpData = { rs.getString(1), rs.getDouble(2), rs.getDouble(3), rs.getString(4) };
-					data_store[i] = tmpData;
-				}
-			}
-			tableStore = new JTable(data_store, columnNames_store) {
-				private static final long serialVersionUID = 1L;
+		data_store = getStoreData();
+		storeModel = new DefaultTableModel(data_store, columnNames_store);
+		tableStore = new JTable(storeModel) {
+			private static final long serialVersionUID = 1L;
 
-				@Override
-				public boolean isCellEditable(int row, int column) {
-					return false;
-				}
-			};
-		}
+			@Override
+			public boolean isCellEditable(int row, int column) {
+				return false;
+			}
+		};
 
 		JScrollPane scrollStore = new JScrollPane();
 		scrollStore.setBounds(425, 62, 343, 121);
@@ -211,7 +195,8 @@ class warehouseheadGUI extends JFrame implements Runnable {
 						String longitude = this.getLongitudeField().getText();
 						String owner = this.getOwnerField().getText();
 						String contact = this.getContactField().getText();
-						String command = "AS;"+id+";"+passwordStr+";"+address+";"+latitude+";"+longitude+";"+owner+";"+contact+";";
+						String command = "AS;" + id + ";" + passwordStr + ";" + address + ";" + latitude + ";"
+								+ longitude + ";" + owner + ";" + contact + ";";
 						form.getOut().println(command);
 					}
 				};
@@ -229,7 +214,7 @@ class warehouseheadGUI extends JFrame implements Runnable {
 						"Are you sure you want to delete store:" + tableStore.getValueAt(selectedrow, 0) + "?",
 						"Warning", JOptionPane.YES_NO_OPTION);
 				if (reply == JOptionPane.YES_OPTION) {
-					form.getOut().println("DS;"+tableWarehouse.getValueAt(selectedrow, 0)+";");
+					form.getOut().println("DS;" + tableWarehouse.getValueAt(selectedrow, 0) + ";");
 				}
 			}
 		});
@@ -245,7 +230,14 @@ class warehouseheadGUI extends JFrame implements Runnable {
 
 		requestData = getRequestingData();
 		requestModel = new DefaultTableModel(requestData, columnNames_request);
-		tableRequest = new JTable(requestModel);
+		tableRequest = new JTable(requestModel) {
+			private static final long serialVersionUID = 1L;
+
+			@Override
+			public boolean isCellEditable(int row, int column) {
+				return false;
+			}
+		};
 
 		JScrollPane scrollRequest = new JScrollPane(tableRequest);
 		scrollRequest.setBounds(12, 249, 756, 155);
@@ -300,6 +292,39 @@ class warehouseheadGUI extends JFrame implements Runnable {
 		return requestData;
 	}
 
+	public Object[][] getStoreData() throws SQLException {
+		rs = DataBaseConnect.execute("select count(*) from store");
+		Object[][] data_store = null;
+		if (rs.next()) {
+			data_store = new Object[rs.getInt(1)][];
+			rs = DataBaseConnect.execute("select * from store");
+			for (int i = 0; i < data_store.length; i++) {
+				if (rs.next()) {
+					Object[] tmpData = { rs.getString(1), rs.getDouble(2), rs.getDouble(3), rs.getString(4) };
+					data_store[i] = tmpData;
+				}
+			}
+		}
+		return data_store;
+	}
+
+	public Object[][] getWarehouseData() throws SQLException {
+		rs = DataBaseConnect.execute("select count(*) from warehouse");
+		Object[][] data_warehouse = null;
+		if (rs.next()) {
+			data_warehouse = new Object[rs.getInt(1)][];
+			rs = DataBaseConnect.execute("select * from warehouse");
+			for (int i = 0; i < data_warehouse.length; i++) {
+				if (rs.next()) {
+					Object[] tmpData = { rs.getString(1), rs.getDouble(2), rs.getDouble(3), rs.getString(4) };
+					data_warehouse[i] = tmpData;
+				}
+			}
+
+		}
+		return data_warehouse;
+	}
+
 	@Override
 	public void run() {
 		setVisible(true);
@@ -323,6 +348,38 @@ class warehouseheadGUI extends JFrame implements Runnable {
 
 	public String[] getColumnNames_request() {
 		return columnNames_request;
+	}
+	
+	public Object[][] getData_store() {
+		return data_store;
+	}
+
+	public void setData_store(Object[][] data_store) {
+		this.data_store = data_store;
+	}
+
+	public Object[][] getData_warehouse() {
+		return data_warehouse;
+	}
+
+	public void setData_warehouse(Object[][] data_warehouse) {
+		this.data_warehouse = data_warehouse;
+	}
+
+	public DefaultTableModel getStoreModel() {
+		return storeModel;
+	}
+
+	public DefaultTableModel getWarehouseModel() {
+		return warehouseModel;
+	}
+	
+	public String[] getColumnNames_warehouse() {
+		return columnNames_warehouse;
+	}
+
+	public String[] getColumnNames_store() {
+		return columnNames_store;
 	}
 }
 
@@ -440,12 +497,12 @@ public class Head extends Thread {
 				}
 			} catch (NumberFormatException e) {
 				queries[i] = null;
-				//e.printStackTrace();
+				// e.printStackTrace();
 			} catch (StringIndexOutOfBoundsException e) {
 				queries[i] = null;
-				//e.printStackTrace();
+				// e.printStackTrace();
 			} catch (SQLException e) {
-				//e.printStackTrace();
+				// e.printStackTrace();
 			}
 		}
 
@@ -465,6 +522,12 @@ public class Head extends Thread {
 				if (command.startsWith("B") || command.startsWith("O") || command.startsWith("CO")) {
 					form.setRequestData(form.getRequestingData());
 					form.getRequestModel().setDataVector(form.getRequestData(), form.getColumnNames_request());
+				} else if (command.startsWith("AW") || command.startsWith("DW")) {
+					form.setData_warehouse(form.getWarehouseData());
+					form.getWarehouseModel().setDataVector(form.getData_warehouse(), form.getColumnNames_warehouse());
+				} else if (command.startsWith("AS") || command.startsWith("DS")) {
+					form.setData_store(form.getStoreData());
+					form.getStoreModel().setDataVector(form.getData_store(), form.getColumnNames_store());
 				} else if (command.startsWith("Verifying"))
 					out.println(this.id);
 				else if (command.startsWith("Accepted")) {
@@ -474,7 +537,6 @@ public class Head extends Thread {
 			} catch (IOException e) {
 				e.printStackTrace();
 			} catch (SQLException e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
 		}

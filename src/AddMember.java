@@ -2,6 +2,7 @@ import java.awt.Color;
 import java.awt.Font;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.io.IOException;
 
 import javax.swing.JButton;
 import javax.swing.JFrame;
@@ -22,7 +23,7 @@ public abstract class AddMember extends JFrame implements ActionListener {
 	private JTextField addressField;
 	private JTextField latitudeField;
 	private JTextField longitudeField;
-	private JButton btnOK, btnCancel;
+	private JButton btnOK, btnCancel, btnConvert;
 	private int memberKind;
 	private JLabel lblOwner;
 	private JTextField ownerField;
@@ -35,7 +36,7 @@ public abstract class AddMember extends JFrame implements ActionListener {
 	public AddMember(boolean isStore) {
 		memberKind = isStore ? 2 : 1; // if the adding member is a store,
 										// memberKind is 2. else it is 1.
-		setBounds(100, 100, 250, 350);
+		setBounds(100, 100, 315, 350);
 		setVisible(true);
 
 		if (isStore) // set frame's title by isStore value.
@@ -53,7 +54,7 @@ public abstract class AddMember extends JFrame implements ActionListener {
 		contentPane.add(lbl_ID);
 
 		idField = new JTextField();
-		idField.setBounds(128, 7, 94, 21);
+		idField.setBounds(128, 7, 159, 21);
 		contentPane.add(idField);
 		idField.setColumns(10);
 
@@ -62,7 +63,7 @@ public abstract class AddMember extends JFrame implements ActionListener {
 		contentPane.add(lblPassword);
 
 		passwordField = new JPasswordField();
-		passwordField.setBounds(128, 53, 94, 21);
+		passwordField.setBounds(128, 53, 159, 21);
 		contentPane.add(passwordField);
 
 		JLabel lblRewritePassword = new JLabel("Re-write Password");
@@ -70,7 +71,7 @@ public abstract class AddMember extends JFrame implements ActionListener {
 		contentPane.add(lblRewritePassword);
 
 		passwordField_Re = new JPasswordField();
-		passwordField_Re.setBounds(128, 78, 94, 21);
+		passwordField_Re.setBounds(128, 78, 159, 21);
 		contentPane.add(passwordField_Re);
 
 		JLabel lblRed = new JLabel("*First Number of ID should be '" + memberKind + "'.");
@@ -84,7 +85,7 @@ public abstract class AddMember extends JFrame implements ActionListener {
 		contentPane.add(lblAddress);
 
 		addressField = new JTextField();
-		addressField.setBounds(12, 127, 210, 21);
+		addressField.setBounds(12, 127, 283, 21);
 		contentPane.add(addressField);
 		addressField.setColumns(10);
 
@@ -115,36 +116,49 @@ public abstract class AddMember extends JFrame implements ActionListener {
 		btnCancel.setBounds(125, 278, 97, 23);
 		btnCancel.addActionListener(this);
 		contentPane.add(btnCancel);
-		
+
 		lblOwner = new JLabel("Owner");
 		lblOwner.setBounds(12, 208, 57, 15);
 		contentPane.add(lblOwner);
-		
+
 		ownerField = new JTextField();
 		ownerField.setColumns(10);
 		ownerField.setBounds(81, 205, 116, 21);
 		contentPane.add(ownerField);
-		
+
 		lblContactNumber = new JLabel("Contact");
 		lblContactNumber.setBounds(12, 233, 57, 15);
 		contentPane.add(lblContactNumber);
-		
+
 		contactField = new JTextField();
 		contactField.setColumns(10);
 		contactField.setBounds(81, 230, 116, 21);
 		contentPane.add(contactField);
+
+		btnConvert = new JButton("Convert");
+		btnConvert.setBounds(209, 154, 86, 23);
+		btnConvert.addActionListener(this);
+		contentPane.add(btnConvert);
 	}
 
 	@Override
 	public void actionPerformed(ActionEvent arg0) {
-		if (arg0.getSource() == btnCancel)
+		if (arg0.getSource() == btnConvert) { //convert button
+			try {
+				String resultStr = new GoogMatrixRequest(addressField.getText()).calculate();
+				String[] results = resultStr.split("\n|:|\\{|\\}|,");
+				latitudeField.setText(results[144]);
+				longitudeField.setText(results[147]);
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		} else if (arg0.getSource() == btnCancel) //cancel button
 			this.dispose();
-		else {
-			if(passwordField.getText().equals(passwordField_Re.getText())){
+		else { //ok button
+			if (passwordField.getText().equals(passwordField_Re.getText())) {
 				makeCommand();
 				this.dispose();
-			}
-			else
+			} else
 				JOptionPane.showMessageDialog(null, "Two Passwords are not correct.");
 		}
 	}

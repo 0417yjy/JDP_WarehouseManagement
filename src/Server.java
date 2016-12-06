@@ -10,6 +10,8 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashSet;
 
+import javax.swing.JOptionPane;
+
 public class Server extends Thread {
 	// set of each client's printwriters
 	private static HashSet<PrintWriter> writers = new HashSet<PrintWriter>();
@@ -241,9 +243,54 @@ public class Server extends Thread {
 								+ commands[2] + "','" + "0')");
 						Head.calculateNewWarehouse(commands[1]);
 						break;
-						
-					case "DS": //delete a store
-						
+
+					case "DS": // delete a store
+						rs = DataBaseConnect
+								.execute("select count(*) from ordering where store_id='" + commands[1] + "'");
+						if (rs.next()) {
+							if (rs.getInt(1) != 0) // if there was order from
+													// the store
+								// show error message and break
+								JOptionPane.showMessageDialog(null,
+										"Cannot delete the store: There are unprocessed orders");
+							break;
+						}
+						rs = DataBaseConnect
+								.execute("select count(*) from shipping where arrival_='" + commands[1] + "'");
+						if (rs.next()) {
+							if (rs.getInt(1) != 0) // if there was order from
+													// the store
+								// show error message and break
+								JOptionPane.showMessageDialog(null,
+										"Cannot delete the warehouse: There are unprocessed shipping orders");
+							break;
+						}
+						// delete distances
+						DataBaseConnect.update("delete from distance where store_id='" + commands[1] + "'");
+						// delete store
+						DataBaseConnect.update("delete from store where store_id='" + commands[1] + "'");
+						// delete account
+						DataBaseConnect.update("delete from identification where id='" + commands[1] + "'");
+						break;
+
+					case "DW": // delete a warehouse
+						rs = DataBaseConnect
+								.execute("select count(*) from shipping where starting_='" + commands[1] + "'");
+						if (rs.next()) {
+							// if there was order from the store
+							if (rs.getInt(1) != 0) {
+								// show error message and break
+								JOptionPane.showMessageDialog(null,
+										"Cannot delete the warehouse: There are unprocessed shipping orders");
+								break;
+							}
+						}
+						// delete distances
+						DataBaseConnect.update("delete from distance where warehouse_id='" + commands[1] + "'");
+						// delete store
+						DataBaseConnect.update("delete from warehouse where warehouse_id='" + commands[1] + "'");
+						// delete account
+						DataBaseConnect.update("delete from identification where id='" + commands[1] + "'");
 						break;
 					}
 					for (PrintWriter writer : writers)
