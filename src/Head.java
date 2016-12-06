@@ -84,11 +84,50 @@ class warehouseheadGUI extends JFrame implements Runnable {
 		btnWarehouseDetail.setBounds(280, 193, 120, 23);
 		contentPane.add(btnWarehouseDetail);
 
-		rs = DataBaseConnect.execute("select row from table_rows where table_name='warehouse'");
+		JButton btnWarehouseAdd = new JButton("Add");
+		btnWarehouseAdd.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent arg0) {
+				new AddMember(false) {
+					@Override
+					void makeCommand() {
+						String id = this.getIdField().getText();
+						String passwordStr = this.getPasswordField().getText();
+						String address = this.getAddressField().getText();
+						String latitude = this.getLatitudeField().getText();
+						String longitude = this.getLongitudeField().getText();
+						String owner = this.getOwnerField().getText();
+						String contact = this.getContactField().getText();
+						String command = "AW;"+id+";"+passwordStr+";"+address+";"+latitude+";"+longitude+";"+owner+";"+contact+";";
+						form.getOut().println(command);
+					}
+				};
+			}
+		});
+		btnWarehouseAdd.setBounds(340, 36, 60, 16);
+		contentPane.add(btnWarehouseAdd);
+
+		JButton btnWarehouseDelete = new JButton("Delete");
+		btnWarehouseDelete.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent arg0) {
+				int selectedrow = tableWarehouse.getSelectedRow();
+				int reply = JOptionPane.showConfirmDialog(null,
+						"Are you sure you want to delete warehouse:" + tableWarehouse.getValueAt(selectedrow, 0) + "?",
+						"Warning", JOptionPane.YES_NO_OPTION);
+				if (reply == JOptionPane.YES_OPTION) {
+					form.getOut().println("DW;"+tableWarehouse.getValueAt(selectedrow, 0)+";");
+				}
+			}
+		});
+		btnWarehouseDelete.setBounds(250, 36, 80, 16);
+		contentPane.add(btnWarehouseDelete);
+
+		rs = DataBaseConnect.execute("select count(*) from warehouse");
 
 		String[] columnNames_warehouse = { "Warehouse_ID", "Latitude", "Longitude", "Address" };
 		if (rs.next()) {
-			Object[][] data_warehouse = new Object[rs.getInt("row")][];
+			Object[][] data_warehouse = new Object[rs.getInt(1)][];
 			rs = DataBaseConnect.execute("select * from warehouse");
 			for (int i = 0; i < data_warehouse.length; i++) {
 				if (rs.next()) {
@@ -117,10 +156,10 @@ class warehouseheadGUI extends JFrame implements Runnable {
 		lblStoreInfo.setBounds(425, 35, 59, 16);
 		contentPane.add(lblStoreInfo);
 
-		rs = DataBaseConnect.execute("select row from table_rows where table_name='store'");
+		rs = DataBaseConnect.execute("select count(*) from store");
 		if (rs.next()) {
 			String[] columnNames_store = { "Store_ID", "Latitude", "Longitude", "Address" };
-			Object[][] data_store = new Object[rs.getInt("row")][];
+			Object[][] data_store = new Object[rs.getInt(1)][];
 			rs = DataBaseConnect.execute("select * from store");
 			for (int i = 0; i < data_store.length; i++) {
 				if (rs.next()) {
@@ -157,6 +196,45 @@ class warehouseheadGUI extends JFrame implements Runnable {
 			}
 		});
 		contentPane.add(btnStoreDetail);
+
+		JButton btnStoreAdd = new JButton("Add");
+		btnStoreAdd.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent arg0) {
+				new AddMember(true) {
+					@Override
+					void makeCommand() {
+						String id = this.getIdField().getText();
+						String passwordStr = this.getPasswordField().getText();
+						String address = this.getAddressField().getText();
+						String latitude = this.getLatitudeField().getText();
+						String longitude = this.getLongitudeField().getText();
+						String owner = this.getOwnerField().getText();
+						String contact = this.getContactField().getText();
+						String command = "AS;"+id+";"+passwordStr+";"+address+";"+latitude+";"+longitude+";"+owner+";"+contact+";";
+						form.getOut().println(command);
+					}
+				};
+			}
+		});
+		btnStoreAdd.setBounds(708, 36, 60, 16);
+		contentPane.add(btnStoreAdd);
+
+		JButton btnStoreDelete = new JButton("Delete");
+		btnStoreDelete.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent arg0) {
+				int selectedrow = tableStore.getSelectedRow();
+				int reply = JOptionPane.showConfirmDialog(null,
+						"Are you sure you want to delete store:" + tableStore.getValueAt(selectedrow, 0) + "?",
+						"Warning", JOptionPane.YES_NO_OPTION);
+				if (reply == JOptionPane.YES_OPTION) {
+					form.getOut().println("DS;"+tableWarehouse.getValueAt(selectedrow, 0)+";");
+				}
+			}
+		});
+		btnStoreDelete.setBounds(618, 36, 80, 16);
+		contentPane.add(btnStoreDelete);
 		// end of making store table
 
 		// make request table
@@ -229,7 +307,7 @@ class warehouseheadGUI extends JFrame implements Runnable {
 			lbTime.setText("Current time : " + new Date().toString());
 		}
 	}
-	
+
 	// getters and setters
 	public Object[][] getRequestData() {
 		return requestData;
@@ -242,6 +320,7 @@ class warehouseheadGUI extends JFrame implements Runnable {
 	public DefaultTableModel getRequestModel() {
 		return requestModel;
 	}
+
 	public String[] getColumnNames_request() {
 		return columnNames_request;
 	}
@@ -340,14 +419,14 @@ public class Head extends Thread {
 			wareLo = rs.getDouble("longitude");
 		}
 
-		rs = DataBaseConnect.execute("select * from warehouse");
+		rs = DataBaseConnect.execute("select * from store");
 		queries = new String[stores];
 		for (int i = 0; i < stores; i++) {
 			try {
 				if (rs.next()) {
 					storeLa = rs.getDouble("latitude");
 					storeLo = rs.getDouble("longitude");
-					String storeID = rs.getString("warehouse_id");
+					String storeID = rs.getString("store_id");
 					String resultStr = new GoogMatrixRequest(wareLa, wareLo, storeLa, storeLo).calculate();
 					String[] results = resultStr.split("\n|:|\\{|\\}");
 					double distance = 0;
@@ -361,12 +440,12 @@ public class Head extends Thread {
 				}
 			} catch (NumberFormatException e) {
 				queries[i] = null;
-				e.printStackTrace();
+				//e.printStackTrace();
 			} catch (StringIndexOutOfBoundsException e) {
 				queries[i] = null;
-				e.printStackTrace();
+				//e.printStackTrace();
 			} catch (SQLException e) {
-				e.printStackTrace();
+				//e.printStackTrace();
 			}
 		}
 

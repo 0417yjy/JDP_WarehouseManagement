@@ -10,7 +10,7 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashSet;
 
-public class Server {
+public class Server extends Thread {
 	// set of each client's printwriters
 	private static HashSet<PrintWriter> writers = new HashSet<PrintWriter>();
 	// set of client's ids
@@ -19,6 +19,7 @@ public class Server {
 
 	// Server Constructor
 	public Server() throws Exception {
+		this.start();
 		ServerSocket ss = new ServerSocket(9001); // port number is 9001
 		System.out.println("The server has been hosted.");
 		try {
@@ -28,6 +29,26 @@ public class Server {
 			}
 		} finally {
 			ss.close();
+		}
+	}
+
+	public void run() {
+		ResultSet rs;
+		Date date = null;
+		while (true) {
+			rs = DataBaseConnect.execute("select * from log");
+			try {
+				if (rs.next()) {
+					date = rs.getDate("change_date");
+				}
+			} catch (SQLException e) {
+				e.printStackTrace();
+			}
+			if (date != null) {
+				int todayMonth = new Date(System.currentTimeMillis()).getMonth();
+				if (todayMonth != date.getMonth())
+					DataBaseConnect.update("delete from log");
+			}
 		}
 	}
 
@@ -96,8 +117,6 @@ public class Server {
 						// add to log
 						DataBaseConnect.update(makeLog(commands[2], commands[1], commands[3], isStore));
 
-						for (PrintWriter writer : writers)
-							writer.println(input + "has completed");
 						break;
 
 					case "MX": // edit inventory capacity
@@ -114,8 +133,6 @@ public class Server {
 							DataBaseConnect.update("update warehouse_inventory set product_max=" + commands[3]
 									+ " where warehouse_id=" + commands[1] + " and product_id=" + commands[2]);
 						}
-						for (PrintWriter writer : writers)
-							writer.println(input + "has completed");
 						break;
 
 					case "MN": // edit inventory quantity
@@ -132,14 +149,10 @@ public class Server {
 							DataBaseConnect.update("update warehouse_inventory set product_min=" + commands[3]
 									+ " where warehouse_id=" + commands[1] + " and product_id=" + commands[2]);
 						}
-						for (PrintWriter writer : writers)
-							writer.println(input + "has completed");
 						break;
 
 					case "B": // batch process
 						calculate(commands[1]); // calculate using order_no
-						for (PrintWriter writer : writers)
-							writer.println(input + "has completed");
 						break;
 
 					case "O": // make new order
@@ -159,15 +172,11 @@ public class Server {
 							DataBaseConnect.update("insert into ordering_list values ('" + commands[i * 2 + 1] + "','"
 									+ (orderNo) + "','" + commands[i * 2 + 2] + "')");
 						}
-						for (PrintWriter writer : writers)
-							writer.println(input + "has completed");
 						break;
 
 					case "CO": // cancel order
 						DataBaseConnect.update("delete from ordering_list where order_no=" + commands[1]);
 						DataBaseConnect.update("delete from ordering where order_no=" + commands[1]);
-						for (PrintWriter writer : writers)
-							writer.println(input + "has completed");
 						break;
 
 					case "R": // received
@@ -188,8 +197,6 @@ public class Server {
 							DataBaseConnect.update(makeLog(commands[2], commands[1], amount + "", isStore));
 						}
 
-						for (PrintWriter writer : writers)
-							writer.println(input + "has completed");
 						break;
 
 					case "S": // shipped
@@ -211,10 +218,36 @@ public class Server {
 							DataBaseConnect.update(makeLog(commands[3], commands[1], amount + "", isStore));
 						}
 
-						for (PrintWriter writer : writers)
-							writer.println(input + "has completed");
+						break;
+
+					case "AS": // add a store
+						// add a new store
+						DataBaseConnect.update("insert into store values ('" + commands[1] + "','" + commands[4] + "','"
+								+ commands[5] + "','" + commands[3] + "','" + commands[6] + "','" + commands[7] + "','"
+								+ 0 + "')");
+						// add a new identification
+						DataBaseConnect.update("insert into identification values ('" + commands[1] + "','"
+								+ commands[2] + "','" + "1')");
+						Head.calculateNewStore(commands[1]);
+						break;
+
+					case "AW": // add a warehouse
+						// add a new warehouse
+						DataBaseConnect.update("insert into warehouse values ('" + commands[1] + "','" + commands[4]
+								+ "','" + commands[5] + "','" + commands[3] + "','" + commands[6] + "','" + commands[7]
+								+ "')");
+						// add a new identification
+						DataBaseConnect.update("insert into identification values ('" + commands[1] + "','"
+								+ commands[2] + "','" + "0')");
+						Head.calculateNewWarehouse(commands[1]);
+						break;
+						
+					case "DS": //delete a store
+						
 						break;
 					}
+					for (PrintWriter writer : writers)
+						writer.println(input + "has completed");
 				}
 			} catch (IOException e) {
 				e.printStackTrace();
